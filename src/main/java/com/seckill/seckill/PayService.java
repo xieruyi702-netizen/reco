@@ -34,6 +34,7 @@ public class PayService {
     public boolean pay(long voucherId, long userId) {
         boolean ok = orderMapper.pay(voucherId, userId) > 0;
         if (ok) {
+            voucherMapper.payConvert(voucherId); // 三段式：锁定 -> 售出
             // 支付成功立即移出延迟队列，避免占用扫描批次直到过期才被清掉
             try (Jedis j = master.getResource()) {
                 j.zrem("orders:unpaid", voucherId + ":" + userId);
@@ -59,7 +60,7 @@ public class PayService {
             // DB CAS 取消（只有待支付能取消；已支付则直接移出延迟队列）
             int updated = orderMapper.cancel(voucherId, userId);
             if (updated > 0) {
-                voucherMapper.restoreStock(voucherId);        // DB 库存回补
+                voucherMapper.cancelRestore(voucherId);       // 三段式：锁定 -> 可用（库存回池）
                 seckillService.rollback(voucherId, userId);   // Redis 幂等回补（库存+1、去重集合移除，可重新抢）
                 cancelled++;
             }

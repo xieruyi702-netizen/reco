@@ -71,6 +71,13 @@ public class OrderConsumer {
     }
 
     private final java.util.concurrent.atomic.AtomicLong epochCache = new java.util.concurrent.atomic.AtomicLong(-1);
+
+    /** 业务订单号：时间戳左移 + 进程内序列，不依赖自增 id（不外露防遍历） */
+    private final java.util.concurrent.atomic.AtomicLong seq = new java.util.concurrent.atomic.AtomicLong();
+
+    long nextOrderNo() {
+        return (System.currentTimeMillis() << 20) | (seq.incrementAndGet() & 0xFFFFF);
+    }
     private volatile long epochCachedAt = 0;
 
     private long currentEpoch() {
@@ -91,8 +98,8 @@ public class OrderConsumer {
         long userId = Long.parseLong(parts[1]);
         long sentAt = parts.length > 2 ? Long.parseLong(parts[2]) : 0;
         if (sentAt > 0 && sentAt < currentEpoch()) return; // 旧代消息（reset 前发出）作废
-        if (orderMapper.insertUnpaid(voucherId, userId) > 0) { // 幂等：重复消息不会二次扣减
-            voucherMapper.deductStock(voucherId);              // DB 库存同步扣减
+        if (orderMapper.insertUnpaid(nextOrderNo(), voucherId, userId) > 0) { // 幂等：重复消息不会二次扣减
+            voucherMapper.lockStock(voucherId);                // 三段式：可用 -> 锁定
             // 挂延迟队列：超时未支付自动取消（score = 截止时间戳 ms）。
             // 只对新订单挂，重复消费不会刷新本应到期的截止时间
             try (var j = master.getResource()) {

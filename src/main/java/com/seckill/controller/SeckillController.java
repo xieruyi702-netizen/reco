@@ -40,9 +40,12 @@ public class SeckillController {
         return Map.of("code", stock == null ? 404 : 0, "data", stock == null ? "voucher not found" : stock);
     }
 
-    /** 秒杀下单（令牌桶限流 + Lua 原子判定 + Kafka 异步落库） */
+    /** 秒杀下单（时间窗校验 + 令牌桶限流 + Lua 原子判定 + Kafka 异步落库） */
     @PostMapping("/{voucherId}/seckill")
     public Map<String, Object> seckill(@PathVariable long voucherId, @RequestParam long userId) {
+        if (!voucherService.inWindow(voucherId)) {
+            return Map.of("code", -1, "msg", "NOT_IN_ACTIVITY_TIME");
+        }
         SeckillService.Result r = seckillService.seckill(voucherId, userId);
         return Map.of("code", r.ordinal(), "msg", r.name());
     }

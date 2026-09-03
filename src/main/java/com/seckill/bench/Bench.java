@@ -80,7 +80,7 @@ public class Bench implements ApplicationRunner {
         Thread.sleep(1500); // 等 consumer 就绪
 
         // —— 基线：纯 DB ——
-        voucherMapper.resetStock(HOT, 1000);
+        jdbc.update("UPDATE tb_seckill_voucher SET available = 1000, locked = 0, sold = 0, version = version + 1 WHERE voucher_id = " + HOT);
         seckill.resetRedis(HOT, 1000);
         jdbc.execute("TRUNCATE tb_voucher_order");
         long t0 = System.nanoTime();
@@ -92,7 +92,7 @@ public class Bench implements ApplicationRunner {
                 users, okDb.get(), orderMapper.countAll(), dbMs, users / (dbMs / 1000.0) / 10000);
 
         // —— 优化全链路 ——
-        voucherMapper.resetStock(HOT, 1000);
+        jdbc.update("UPDATE tb_seckill_voucher SET available = 1000, locked = 0, sold = 0, version = version + 1 WHERE voucher_id = " + HOT);
         seckill.resetRedis(HOT, 1000);
         jdbc.execute("TRUNCATE tb_voucher_order");
         jdbc.execute("TRUNCATE tb_local_message");
@@ -210,24 +210,28 @@ public class Bench implements ApplicationRunner {
         while (System.currentTimeMillis() < deadline && orderMapper.countAll() < writeOk.get()) Thread.sleep(200);
         while (pay.unpaidQueueSize() > 0) Thread.sleep(500);
 
-        // 一致性校验：对每张券， redis 余量 + 生效订单数(status 0/1) == 1000；DB 同理
+        // 三段式交叉对账：redis==db.available, db.locked==待支付数, db.sold==已支付数, 和>=初始
         long inconsistent = 0, oversold = 0;
         for (long v = 1; v <= SHOPS; v++) {
-            long redisLeft, active;
+            long redisAvail;
             try (var j = master.getResource()) {
-                redisLeft = Long.parseLong(j.get("seckill:stock:" + v));
+                redisAvail = Long.parseLong(j.get("seckill:stock:" + v));
             }
             var row = jdbc.queryForMap(
-                    "SELECT stock, " +
-                    " (SELECT COUNT(*) FROM tb_voucher_order o WHERE o.voucher_id = " + v + " AND o.status IN (0,1)) AS active " +
+                    "SELECT available, locked, sold, " +
+                    " (SELECT COUNT(*) FROM tb_voucher_order o WHERE o.voucher_id = " + v + " AND o.status = 0) AS unpaid, " +
+                    " (SELECT COUNT(*) FROM tb_voucher_order o WHERE o.voucher_id = " + v + " AND o.status = 1) AS paid " +
                     "FROM tb_seckill_voucher WHERE voucher_id = " + v);
-            int dbLeft = ((Number) row.get("stock")).intValue();
-            active = ((Number) row.get("active")).longValue();
-            if (active > 1000) oversold++;
-            if (redisLeft + active != 1000 || dbLeft + active != 1000) inconsistent++;
+            long av = ((Number) row.get("available")).longValue();
+            long lk = ((Number) row.get("locked")).longValue();
+            long sd = ((Number) row.get("sold")).longValue();
+            long unpaid = ((Number) row.get("unpaid")).longValue();
+            long paid = ((Number) row.get("paid")).longValue();
+            if (unpaid + paid > 1000) oversold++;
+            if (redisAvail != av || lk != unpaid || sd != paid || av + lk + sd < 1000) inconsistent++;
         }
         System.out.printf(Locale.ROOT,
-                "  [check] 总订单=%d（判定成功 %d）| 每张券 redis余量+生效订单=1000 违反=%d | 超卖券数=%d | 本地消息表pending=%d%n",
+                "  [check] 总订单=%d（判定成功 %d）| 分段对账(redis=avail/locked=待支付/sold=已支付)违反=%d | 超卖券数=%d | 本地消息表pending=%d%n",
                 orderMapper.countAll(), writeOk.get(), inconsistent, oversold, localMessageMapper.countPending());
     }
 

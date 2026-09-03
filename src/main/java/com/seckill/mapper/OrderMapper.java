@@ -13,18 +13,21 @@ import java.util.Map;
 @Mapper
 public interface OrderMapper {
 
-    @Insert("INSERT IGNORE INTO tb_voucher_order(voucher_id, user_id, status) VALUES(#{voucherId}, #{userId}, 0)")
-    int insertUnpaid(@Param("voucherId") long voucherId, @Param("userId") long userId);
+    @Insert("INSERT IGNORE INTO tb_voucher_order(order_no, voucher_id, user_id, status) " +
+            "VALUES(#{orderNo}, #{voucherId}, #{userId}, 0)")
+    int insertUnpaid(@Param("orderNo") long orderNo, @Param("voucherId") long voucherId, @Param("userId") long userId);
 
     @Select("SELECT status FROM tb_voucher_order WHERE voucher_id = #{voucherId} AND user_id = #{userId}")
     Integer selectStatus(@Param("voucherId") long voucherId, @Param("userId") long userId);
 
-    /** 支付：仅待支付状态可流转，CAS 语义 */
-    @Update("UPDATE tb_voucher_order SET status = 1 WHERE voucher_id = #{voucherId} AND user_id = #{userId} AND status = 0")
+    /** 支付：仅待支付状态可流转，CAS 语义，留痕 pay_time */
+    @Update("UPDATE tb_voucher_order SET status = 1, pay_time = NOW() " +
+            "WHERE voucher_id = #{voucherId} AND user_id = #{userId} AND status = 0")
     int pay(@Param("voucherId") long voucherId, @Param("userId") long userId);
 
-    /** 超时取消：仅待支付状态可流转 */
-    @Update("UPDATE tb_voucher_order SET status = 2 WHERE voucher_id = #{voucherId} AND user_id = #{userId} AND status = 0")
+    /** 超时取消：仅待支付状态可流转，留痕 cancel_time（对账可校验 cancel_time-created_at≈超时阈值） */
+    @Update("UPDATE tb_voucher_order SET status = 2, cancel_time = NOW() " +
+            "WHERE voucher_id = #{voucherId} AND user_id = #{userId} AND status = 0")
     int cancel(@Param("voucherId") long voucherId, @Param("userId") long userId);
 
     @Select("SELECT COUNT(*) FROM tb_voucher_order")

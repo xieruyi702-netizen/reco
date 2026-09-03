@@ -20,7 +20,7 @@ public interface LocalMessageMapper {
     @Select("SELECT msg_id AS msgId, body FROM tb_local_message WHERE status = 0 AND retry < 10 ORDER BY id LIMIT 500")
     List<Map<String, Object>> selectPending();
 
-    @Update("UPDATE tb_local_message SET status = 1 WHERE msg_id = #{msgId}")
+    @Update("UPDATE tb_local_message SET status = 1, sent_at = NOW() WHERE msg_id = #{msgId}")
     int markSent(@Param("msgId") String msgId);
 
     @Update("UPDATE tb_local_message SET retry = retry + 1 WHERE msg_id = #{msgId}")

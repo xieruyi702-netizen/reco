@@ -15,23 +15,34 @@ public class SchemaInit {
 
     @jakarta.annotation.PostConstruct
     public void init() {
+        // 三段式库存: available 可抢 / locked 待支付占用 / sold 已支付售出, 任意时刻三段之和 = 初始 + 累计加量
         jdbc.execute("CREATE TABLE IF NOT EXISTS tb_seckill_voucher (" +
-                "voucher_id BIGINT PRIMARY KEY, stock INT NOT NULL)");
+                "voucher_id BIGINT PRIMARY KEY, available INT NOT NULL DEFAULT 0, " +
+                "locked INT NOT NULL DEFAULT 0, sold INT NOT NULL DEFAULT 0, " +
+                "version BIGINT NOT NULL DEFAULT 0, " +
+                "start_time DATETIME NOT NULL, end_time DATETIME NOT NULL, " +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
         jdbc.execute("DROP TABLE IF EXISTS tb_shop");
         jdbc.execute("CREATE TABLE IF NOT EXISTS tb_voucher_order (" +
-                "id BIGINT AUTO_INCREMENT PRIMARY KEY, voucher_id BIGINT NOT NULL, " +
-                "user_id BIGINT NOT NULL, status TINYINT NOT NULL DEFAULT 0, " +
+                "id BIGINT AUTO_INCREMENT PRIMARY KEY, order_no BIGINT NOT NULL UNIQUE, " +
+                "voucher_id BIGINT NOT NULL, user_id BIGINT NOT NULL, " +
+                "status TINYINT NOT NULL DEFAULT 0, " +
+                "pay_time DATETIME NULL, cancel_time DATETIME NULL, " +
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "UNIQUE KEY uk_voucher_user (voucher_id, user_id))");
         jdbc.execute("CREATE TABLE IF NOT EXISTS tb_local_message (" +
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, msg_id VARCHAR(64) NOT NULL UNIQUE, " +
                 "body VARCHAR(128) NOT NULL, status TINYINT NOT NULL DEFAULT 0, " +
-                "retry INT NOT NULL DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+                "retry INT NOT NULL DEFAULT 0, sent_at DATETIME NULL, " +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
-        jdbc.batchUpdate("INSERT INTO tb_seckill_voucher(voucher_id, stock) VALUES(?,1000) " +
-                        "ON DUPLICATE KEY UPDATE stock = 1000",
+        java.time.LocalDateTime start = java.time.LocalDateTime.now().minusDays(1);
+        java.time.LocalDateTime end = java.time.LocalDateTime.now().plusYears(1);
+        jdbc.batchUpdate("INSERT INTO tb_seckill_voucher(voucher_id, available, start_time, end_time) " +
+                        "VALUES(?, 1000, ?, ?) ON DUPLICATE KEY UPDATE available = 1000, locked = 0, sold = 0, version = version + 1",
                 java.util.stream.IntStream.rangeClosed(1, 1000)
-                        .mapToObj(i -> new Object[]{(long) i})
+                        .mapToObj(i -> new Object[]{(long) i, start, end})
                         .toList());
         jdbc.execute("TRUNCATE tb_voucher_order");
         jdbc.execute("TRUNCATE tb_local_message");

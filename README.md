@@ -157,3 +157,34 @@ curl "http://localhost:8080/admin/audit?stock=1000"           # 压后对账
 对账（积压排空后）：`mismatch=0`，1000 张券全部一致。
 
 > 移除多级缓存（Caffeine L1）后读链路少了本地命中层——原 592 万 QPS 的缓存数字随商铺模型一并移除，当前读链路以 Redis 直读为上限。
+
+
+## 字段升级（2026-09-03）：三段式库存 + 订单证据链 + 投递可观测
+
+### 券表 tb_seckill_voucher
+
+| 字段 | 作用 |
+|---|---|
+| `available / locked / sold` | **三段式库存**：下单(消费端) available→locked；支付 locked→sold；超时取消 locked→available 回池。不变式「三段之和 = 初始 + 累计加量」任意时刻可审计 |
+| `version` | 乐观锁，addStock 等多字段更新 CAS 重试（3 次） |
+| `start_time / end_time` | 券活动时间窗，启动加载至内存，抢券/加量入口校验 |
+| `updated_at` | ON UPDATE 自动维护，排障时间线 |
+
+### 订单表 tb_voucher_order
+
+| 字段 | 作用 |
+|---|---|
+| `order_no` | 业务订单号（时间戳<<20 + 进程序列），自增 id 不外露防遍历 |
+| `pay_time / cancel_time` | 状态机时间戳证据链：可校验「cancel_time - created_at ≈ 超时阈值」验证延迟队列健康度 |
+
+### 本地消息表 tb_local_message
+
+`sent_at`——Outbox 投递时间可观测，能计算中继投递延迟（实测积压期最长 124s，正常毫秒级）。
+
+### 对账升级（/admin/audit）
+
+从单一等式升级为**分段交叉对账**：① redis.available == db.available ② db.locked == 待支付订单数 ③ db.sold == 已支付订单数 ④ 三段之和 ≥ 初始量。实时可审，不必等延迟取消跑完。
+
+### JMeter 复测（64 线程 / 30s / 80读20写）
+
+**4,526 req/s 零错误**，对账（积压排空后）1000/1000 通过；实测 21,000 单超时取消、`min/max cancel 时延 = 14s/133s`（扫描批 200×2 实例/500ms 的排空速度，即消费积压期的取消延迟，健康期应秒级）。
