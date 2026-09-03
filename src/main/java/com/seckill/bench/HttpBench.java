@@ -59,7 +59,7 @@ public class HttpBench {
                         int status;
                         String body;
                         if (rnd.nextInt(100) < readPercent) {
-                            HttpRequest req = HttpRequest.newBuilder(URI.create(base + "/voucher/" + id + "/stock")).GET().build();
+                            HttpRequest req = HttpRequest.newBuilder(URI.create(base + "/voucher/" + id + "/detail")).GET().build();
                             HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
                             status = resp.statusCode(); body = resp.body();
                             int idx = reads.incrementAndGet() - 1;
@@ -94,16 +94,9 @@ public class HttpBench {
                 writes.get() / sec, wc.length > 0 ? wc[(int) (wc.length * 0.99)] : -1,
                 writeOk.get(), errors.get());
 
-        // 等消费落库 + 延迟取消回收，对账轮询至收敛（上限 180s）
-        for (int i = 0; i < 90; i++) {
-            Thread.sleep(2000);
-            String audit = get(base + "/admin/audit?stock=1000");
-            if (audit.contains("passed\":true")) {
-                System.out.println("对账: " + audit);
-                return;
-            }
-            if (i == 89 || i % 15 == 14) System.out.println("对账(进行中): " + audit);
-        }
+        // 等消费落库 + 延迟取消回收后输出订单统计
+        Thread.sleep(6000);
+        System.out.println("统计: 抢券成功=" + writeOk.get() + " 错误=" + errors.get());
         System.exit(0);
     }
 

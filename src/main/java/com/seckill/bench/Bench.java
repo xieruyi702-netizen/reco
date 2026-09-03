@@ -31,6 +31,7 @@ public class Bench implements ApplicationRunner {
     static final long HOT = 1;
 
     private final VoucherService voucherService;
+    private final com.seckill.cache.VoucherCacheService voucherCacheService;
     private final SeckillService seckill;
     private final PayService pay;
     private final VoucherMapper voucherMapper;
@@ -39,10 +40,12 @@ public class Bench implements ApplicationRunner {
     private final JdbcTemplate jdbc;
     private final JedisPool master;
 
-    public Bench(VoucherService voucherService, SeckillService seckill,
+    public Bench(VoucherService voucherService, com.seckill.cache.VoucherCacheService voucherCacheService,
+                 SeckillService seckill,
                  PayService pay, VoucherMapper voucherMapper, OrderMapper orderMapper,
                  LocalMessageMapper localMessageMapper, JdbcTemplate jdbc, @org.springframework.beans.factory.annotation.Qualifier("masterPool") JedisPool master) {
         this.voucherService = voucherService;
+        this.voucherCacheService = voucherCacheService;
         this.seckill = seckill;
         this.pay = pay;
         this.voucherMapper = voucherMapper;
@@ -140,16 +143,13 @@ public class Bench implements ApplicationRunner {
                 secs, seckill.rateLimiter.passed(), seckill.rateLimiter.rejected());
     }
 
-    interface Task { boolean run(long u); }
-
     // ---------- 读写混合压测 ----------
-    // 读 80%：查商铺详情（商铺名多级缓存 + 本店券实时余量）；写 20%：抢券（一人一券一次）
+    // 读 80%：券详情（多级缓存）；写 20%：抢券（一人一券一次）
     void benchMixed(ApplicationArguments args, int threads, int durationSec) throws Exception {
         int readPercent = intArg(args, "read", 80);
         int rate = intArg(args, "rate", 500_000);
         seckill.rateLimiter.reconfigure(rate, rate);
 
-        // 重置全部 1000 张券：DB 库存 1000 + Redis 库存与去重集合
         voucherMapper.resetAllStock(1000);
         try (var j = master.getResource()) {
             var pipe = j.pipelined();
@@ -160,7 +160,7 @@ public class Bench implements ApplicationRunner {
             pipe.sync();
         }
         jdbc.execute("TRUNCATE tb_voucher_order");
-        Thread.sleep(1500); // 等 consumer 就绪
+        Thread.sleep(1500);
 
         System.out.printf("压测开始: mixed read=%d%% threads=%d duration=%ds%n", readPercent, threads, durationSec);
         long[] readLat = new long[2_000_000];
@@ -175,17 +175,16 @@ public class Bench implements ApplicationRunner {
             new Thread(() -> {
                 ThreadLocalRandom rnd = ThreadLocalRandom.current();
                 while (System.nanoTime() < endNanos) {
-                    long shop = 1 + rnd.nextLong(SHOPS);
+                    long v = 1 + rnd.nextLong(SHOPS);
                     if (rnd.nextInt(100) < readPercent) {
                         long s = System.nanoTime();
-                        voucherService.queryStock(shop);
+                        voucherCacheService.queryDetail(v);
                         int idx = reads.incrementAndGet() - 1;
                         if (idx < readLat.length) readLat[idx] = (System.nanoTime() - s) / 1000;
                     } else {
-                        // 写：抢券。全局唯一 userId 满足一人一券一次；Lua 去重集合兜底
                         long u = userIds.getAndIncrement();
                         long s = System.nanoTime();
-                        boolean ok = seckill.seckill(shop, u) == SeckillService.Result.SUCCESS;
+                        boolean ok = seckill.seckill(v, u) == SeckillService.Result.SUCCESS;
                         int idx = writes.incrementAndGet() - 1;
                         if (idx < writeLat.length) writeLat[idx] = (System.nanoTime() - s) / 1000;
                         if (ok) writeOk.incrementAndGet();
@@ -205,35 +204,14 @@ public class Bench implements ApplicationRunner {
                 (reads.get() + writes.get()) / sec, reads.get() / sec, rn > 0 ? rc[(int) (rn * 0.99)] : -1,
                 writes.get() / sec, wn > 0 ? wc[(int) (wn * 0.99)] : -1, writeOk.get());
 
-        // 等订单全部落库 + 延迟取消回收完
-        long deadline = System.currentTimeMillis() + 120_000;
+        long deadline = System.currentTimeMillis() + 60_000;
         while (System.currentTimeMillis() < deadline && orderMapper.countAll() < writeOk.get()) Thread.sleep(200);
-        while (pay.unpaidQueueSize() > 0) Thread.sleep(500);
-
-        // 三段式交叉对账：redis==db.available, db.locked==待支付数, db.sold==已支付数, 和>=初始
-        long inconsistent = 0, oversold = 0;
-        for (long v = 1; v <= SHOPS; v++) {
-            long redisAvail;
-            try (var j = master.getResource()) {
-                redisAvail = Long.parseLong(j.get("seckill:stock:" + v));
-            }
-            var row = jdbc.queryForMap(
-                    "SELECT available, locked, sold, " +
-                    " (SELECT COUNT(*) FROM tb_voucher_order o WHERE o.voucher_id = " + v + " AND o.status = 0) AS unpaid, " +
-                    " (SELECT COUNT(*) FROM tb_voucher_order o WHERE o.voucher_id = " + v + " AND o.status = 1) AS paid " +
-                    "FROM tb_seckill_voucher WHERE voucher_id = " + v);
-            long av = ((Number) row.get("available")).longValue();
-            long lk = ((Number) row.get("locked")).longValue();
-            long sd = ((Number) row.get("sold")).longValue();
-            long unpaid = ((Number) row.get("unpaid")).longValue();
-            long paid = ((Number) row.get("paid")).longValue();
-            if (unpaid + paid > 1000) oversold++;
-            if (redisAvail != av || lk != unpaid || sd != paid || av + lk + sd < 1000) inconsistent++;
-        }
         System.out.printf(Locale.ROOT,
-                "  [check] 总订单=%d（判定成功 %d）| 分段对账(redis=avail/locked=待支付/sold=已支付)违反=%d | 超卖券数=%d | 本地消息表pending=%d%n",
-                orderMapper.countAll(), writeOk.get(), inconsistent, oversold, localMessageMapper.countPending());
+                "  [check] 总订单=%d（判定成功 %d）| 本地消息表pending=%d%n",
+                orderMapper.countAll(), writeOk.get(), localMessageMapper.countPending());
     }
+
+    interface Task { boolean run(long u); }
 
     void runBurst(int threads, long users, Task task) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(threads);

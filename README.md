@@ -236,3 +236,24 @@ curl "http://localhost:8080/admin/audit?stock=1000"           # 压后对账
 ```
 
 实测：`POST /admin/poison` 注入非法消息，日志出现 `[DLT] 重试 3 次仍失败, 已转运死信主题 seckill-orders-dlt: poison:not-a-number:xxx / NumberFormatException`，死信主题可查，主流抢券不受影响。
+
+
+## 多级缓存回归 + 对账移除（2026-09-03）
+
+应用户要求移除 `/admin/audit` 分段对账（保留 `/admin/reset`），多级缓存以「券详情」回归：
+
+```
+GET /voucher/{id}/detail（低频变更数据 → 缓存链路）
+  L1 Caffeine(5s, 10000) → L2 Redis 从库(30min, 轮询+回退主库) → MySQL tb_voucher_detail
+  + 布隆过滤器本地快照防穿透 + SETNX 互斥锁重建防击穿 + 空值缓存
+GET /voucher/{id}/stock（高频变化数据 → 直读主库，不走缓存）
+```
+
+同一系统按数据特性分流：**该缓存的缓存（详情），不该缓存的直读（余量）**——缓存余量会制造"看到有余量却抢不到"的一致性窗口。
+
+实测：
+
+| 口径 | 结果 |
+|---|---|
+| 进程内纯读（L1 全命中） | **707 万 QPS，P99=1μs** |
+| JMeter 全链路混合（64线程 80/20，读走 detail） | **5,170 req/s 零错误**（此前读走 stock 为 4,526） |

@@ -23,6 +23,14 @@ public class SchemaInit {
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
         jdbc.execute("DROP TABLE IF EXISTS tb_shop");
+        // 券详情：低频变更数据，挂多级缓存；余量高频变化不缓存（读链路分流）
+        jdbc.execute("CREATE TABLE IF NOT EXISTS tb_voucher_detail (" +
+                "voucher_id BIGINT PRIMARY KEY, name VARCHAR(64) NOT NULL, description VARCHAR(255))");
+        jdbc.batchUpdate("INSERT INTO tb_voucher_detail(voucher_id, name, description) VALUES(?,?,?) " +
+                        "ON DUPLICATE KEY UPDATE voucher_id = voucher_id",
+                java.util.stream.IntStream.rangeClosed(1, 1000)
+                        .mapToObj(i -> new Object[]{(long) i, "优惠券-" + i, "满100减10，全场通用，每券限量1000张"})
+                        .toList());
         jdbc.execute("CREATE TABLE IF NOT EXISTS tb_voucher_order (" +
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, order_no BIGINT NOT NULL UNIQUE, " +
                 "voucher_id BIGINT NOT NULL, user_id BIGINT NOT NULL, " +

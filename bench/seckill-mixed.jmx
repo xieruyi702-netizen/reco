@@ -50,7 +50,7 @@
             <stringProp name="HTTPSampler.domain">${HOST}</stringProp>
             <stringProp name="HTTPSampler.port">${PORT}</stringProp>
             <stringProp name="HTTPSampler.protocol">http</stringProp>
-            <stringProp name="HTTPSampler.path">/voucher/${__Random(1,1000)}/stock</stringProp>
+            <stringProp name="HTTPSampler.path">/voucher/${__Random(1,1000)}/detail</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>

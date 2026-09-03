@@ -2,6 +2,7 @@ package com.seckill.controller;
 
 import com.seckill.seckill.PayService;
 import com.seckill.seckill.SeckillService;
+import com.seckill.cache.VoucherCacheService;
 import com.seckill.seckill.VoucherService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,12 +26,21 @@ public class SeckillController {
     private final SeckillService seckillService;
     private final PayService payService;
     private final VoucherService voucherService;
+    private final VoucherCacheService voucherCacheService;
 
     public SeckillController(SeckillService seckillService, PayService payService,
-                             VoucherService voucherService) {
+                             VoucherService voucherService, VoucherCacheService voucherCacheService) {
         this.seckillService = seckillService;
         this.payService = payService;
         this.voucherService = voucherService;
+        this.voucherCacheService = voucherCacheService;
+    }
+
+    /** 券详情（多级缓存：Caffeine L1 → Redis 从库 L2 → MySQL，布隆防穿透 + 互斥锁防击穿） */
+    @GetMapping("/{voucherId}/detail")
+    public Map<String, Object> detail(@PathVariable long voucherId) {
+        String d = voucherCacheService.queryDetail(voucherId);
+        return Map.of("code", d == null ? 404 : 0, "data", d == null ? "voucher not found" : d);
     }
 
     /** 券余量（布隆防穿透 + Redis 主库直读） */
