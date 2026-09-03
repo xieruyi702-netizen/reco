@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * 本地消息表中继：定时扫描发送失败/未确认的消息重投 Kafka（最多重试 10 次），
  * 投递成功标记 SENT。配合消费端幂等（INSERT IGNORE + 唯一索引）实现最终一致性。
+ * 多实例部署：两实例可能同时扫到同一批 PENDING 重复投递——
+ * markSent 幂等 + 消费端唯一索引吸收重复，正确性不受影响，无需加锁。
  */
 @Component
 public class LocalMessageRelay {

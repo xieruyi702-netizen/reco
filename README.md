@@ -6,12 +6,15 @@
 ## Docker 拓扑（docker/docker-compose.yml）
 
 ```
-├── app        Spring Boot（宿主机 8080，docker profile 用容器服务名连中间件）
-├── mysql:8.4  端口 3306，启动自动建库造数（1000 商铺 / 每铺一券 / 订单表 / 本地消息表）
+├── nginx       8080 入口，轮询负载均衡到 app1/app2（max_fails 摘除 + next_upstream 重试）
+├── app1/app2   Spring Boot 双实例（docker profile 用容器服务名连中间件）
+├── mysql:8.4   端口 3306，启动自动建库造数（1000 商铺 / 每铺一券库存1000 / 订单表 / 本地消息表）
 ├── redis-master        6379（写）
 ├── redis-replica-1/2   6380/6381（读，轮询 + 失败回退主库）
-└── kafka       KRaft 单节点 9092
+└── kafka       KRaft 单节点 9092（seckill-orders topic 2 分区，两实例分组并行消费）
 ```
+
+多实例语义：延迟取消扫描经 Redis 分布式锁互斥；消息表中继重复投递由消费端幂等吸收；令牌桶为实例内存态（集群总限流 = 单实例配置 × 实例数）。
 
 ```bash
 cd docker
@@ -23,10 +26,26 @@ mvn package -DskipTests && docker compose build app   # app 用本地 jar 构建
 
 - **多级缓存**：L1 Caffeine(5s TTL) → L2 Redis 从库(30min) → MySQL；布隆过滤器本地快照防穿透；SETNX 互斥锁重建 + 空值缓存防击穿
 - **秒杀**：令牌桶限流（惰性补充，fail-fast）→ Redis Lua 原子「库存判断 + 一人一单去重 + 扣减」→ Kafka 异步落库
-- **最终一致性**：Kafka 发送失败落本地消息表，@Scheduled 中继重投（≤10 次），消费端 INSERT IGNORE + 唯一索引幂等
+- **最终一致性**：先落本地消息表再发 Kafka（Outbox，无崩溃丢消息窗口），@Scheduled 中继重投（≤10 次）；Kafka 消费端手动 commit + `earliest` 重放，INSERT IGNORE + 唯一索引幂等
 - **支付状态机**：订单 0 待支付 → 1 已支付 / 2 超时取消；未支付订单挂 Redis ZSet 延迟队列，到期扫描 CAS 取消 + DB/Redis 双回补库存（Lua 幂等，取消后可重新抢）
 
 ## 压测复现（中间件全部容器化，宿主机发起）
+
+### JMeter 端到端压测（走 Nginx → 双实例全链路）
+
+```bash
+# 每轮压测前重置状态
+curl -X POST "http://localhost:8080/admin/reset?stock=1000"
+# 压测后逐券对账（mismatch=0 即通过）
+curl "http://localhost:8080/admin/audit?stock=1000"
+```
+
+| JMeter 线程组 | 请求 |
+|---|---|
+| 读 | `GET http://localhost:8080/shop/${__Random(1,1000)}` |
+| 写 | `POST http://localhost:8080/voucher/1/seckill?userId=${__Random(1,50000)}` |
+
+### 进程内组件压测（Bench，绕过 HTTP 栈隔离组件能力）
 
 ```bash
 mvn -q dependency:build-classpath -Dmdep.outputFile=target/cp.txt

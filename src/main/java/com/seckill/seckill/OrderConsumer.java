@@ -42,9 +42,8 @@ public class OrderConsumer {
         p.put("group.id", "seckill-order");
         p.put("key.deserializer", "org.apache.kafka.common.serialization.LongDeserializer");
         p.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        p.put("enable.auto.commit", "true");
-        p.put("auto.commit.interval.ms", "500");
-        p.put("auto.offset.reset", "latest"); // 生产组跟随最新消息，历史由对账兜底
+        p.put("enable.auto.commit", "false"); // 手动提交：处理完一批再 commit，配合消费幂等做到 at-least-once
+        p.put("auto.offset.reset", "earliest"); // group offset 丢失时从最早重放，靠幂等去重，宁可重复不丢消息
         this.consumer = new KafkaConsumer<>(p);
         this.consumer.subscribe(List.of(topic));
         this.worker = new Thread(this::run, "order-consumer");
@@ -59,8 +58,14 @@ public class OrderConsumer {
         while (running) {
             ConsumerRecords<Long, String> records = consumer.poll(Duration.ofMillis(200));
             for (ConsumerRecord<Long, String> r : records) {
-                handle(r.value());
+                try {
+                    handle(r.value());
+                } catch (Exception e) {
+                    // 单条解析/处理失败只记日志不中断批次；offset 照常推进，
+                    // 坏消息靠 DB 唯一索引与状态机兜底，不因毒消息卡死消费组
+                }
             }
+            if (!records.isEmpty()) consumer.commitSync(); // 处理完成才提交，宕机后从上次提交位重放
         }
         consumer.close();
     }
@@ -71,10 +76,11 @@ public class OrderConsumer {
         long userId = Long.parseLong(parts[1]);
         if (orderMapper.insertUnpaid(voucherId, userId) > 0) { // 幂等：重复消息不会二次扣减
             voucherMapper.deductStock(voucherId);              // DB 库存同步扣减
-        }
-        // 挂延迟队列：超时未支付自动取消（score = 截止时间戳 ms）
-        try (var j = master.getResource()) {
-            j.zadd("orders:unpaid", System.currentTimeMillis() + orderTimeoutMs, msg);
+            // 挂延迟队列：超时未支付自动取消（score = 截止时间戳 ms）。
+            // 只对新订单挂，重复消费不会刷新本应到期的截止时间
+            try (var j = master.getResource()) {
+                j.zadd("orders:unpaid", System.currentTimeMillis() + orderTimeoutMs, msg);
+            }
         }
     }
 

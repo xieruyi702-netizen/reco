@@ -32,7 +32,14 @@ public class PayService {
 
     /** 支付：仅待支付状态可流转（CAS）。返回 false = 订单不存在/已支付/已取消 */
     public boolean pay(long voucherId, long userId) {
-        return orderMapper.pay(voucherId, userId) > 0;
+        boolean ok = orderMapper.pay(voucherId, userId) > 0;
+        if (ok) {
+            // 支付成功立即移出延迟队列，避免占用扫描批次直到过期才被清掉
+            try (Jedis j = master.getResource()) {
+                j.zrem("orders:unpaid", voucherId + ":" + userId);
+            }
+        }
+        return ok;
     }
 
     /** 定时扫描超时订单（每 500ms），批量处理到期未支付订单 */

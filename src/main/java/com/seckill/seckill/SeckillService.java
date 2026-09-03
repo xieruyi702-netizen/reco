@@ -67,9 +67,9 @@ public class SeckillService {
         this.rateLimiter = new TokenBucket(capacity, refillPerSec);
     }
 
-    public enum Result { SUCCESS, RATE_LIMITED, SOLD_OUT, DUPLICATED }
+    public enum Result { SUCCESS, RATE_LIMITED, SOLD_OUT, DUPLICATED, DB_ERROR }
 
-    /** 秒杀入口：限流 → Lua 判定 → Kafka（失败落本地消息表） */
+    /** 秒杀入口：限流 → Lua 判定 → 落本地消息表（失败则整体回滚）→ Kafka */
     public Result seckill(long voucherId, long userId) {
         if (!rateLimiter.tryAcquire()) return Result.RATE_LIMITED;
 
@@ -84,7 +84,13 @@ public class SeckillService {
             return Result.SOLD_OUT;
         }
 
-        sendReliably(voucherId, userId);
+        try {
+            sendReliably(voucherId, userId);
+        } catch (Exception e) {
+            // 消息落库失败 = 账没记上，这单不成立：幂等回滚 Redis（库存+1、去重集合移除），用户可重试
+            rollback(voucherId, userId);
+            return Result.DB_ERROR;
+        }
         return Result.SUCCESS;
     }
 
@@ -99,13 +105,19 @@ public class SeckillService {
         }
     }
 
-    /** 可靠投递：同步等 Kafka ack，失败落本地消息表由中继补偿 */
-    void sendReliably(long voucherId, long userId) {
+    /**
+     * 可靠投递（Write-Through Outbox）：先落本地消息表（INSERT IGNORE 幂等），再发 Kafka。
+     * 先落库保证「Redis 已扣减但进程崩溃」时消息仍在，由中继补投，不存在丢消息窗口；
+     * 发送成功即标记 SENT，避免中继重复扫描。
+     */
+    void sendReliably(long voucherId, long userId) throws Exception {
         String msgId = voucherId + ":" + userId;
+        localMessageMapper.insert(msgId, msgId); // 落账失败向上抛，seckill 会整体回滚 Redis
         try {
             producer.send(new ProducerRecord<>(topic, userId, msgId)).get(2, TimeUnit.SECONDS);
+            localMessageMapper.markSent(msgId);
         } catch (Exception e) {
-            localMessageMapper.insert(msgId, msgId); // 兜底：最终一致性
+            // 发送/markSent 失败不打断主流程：消息已落库，状态保持 PENDING，由 LocalMessageRelay 定时重投
         }
     }
 
@@ -114,6 +126,13 @@ public class SeckillService {
         try (Jedis j = master.getResource()) {
             j.set("seckill:stock:" + voucherId, String.valueOf(stock));
             j.del("seckill:users:" + voucherId);
+        }
+    }
+
+    /** 清空延迟取消队列（压测重置用） */
+    public void clearUnpaidQueue() {
+        try (Jedis j = master.getResource()) {
+            j.del("orders:unpaid");
         }
     }
 
