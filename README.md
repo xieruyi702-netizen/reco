@@ -111,3 +111,26 @@ java -cp target/classes:$(cat target/cp.txt) com.seckill.SeckillApplication --be
 2. **孤儿订单**：`/admin/reset` 截断订单表后，Kafka 在途/重放消息被重新消费，凭空重建订单（DB 库存 999 + Redis 1000 不一致）→ **代际栅栏**：reset 时写时间戳 epoch，消息体带发送时间，早于 epoch 的消息消费端直接作废
 3. **对账口径**：audit 必须只统计生效订单（status 0/1），已取消订单库存已回补
 4. **Outbox 同步发送拖垮写 P99**（52ms）：消息已落账后没必要同步等 Kafka ack → 改异步回调 markSent，失败交给中继，P99 降约 40%
+
+
+## JMeter 标准压测（2026-09-03）
+
+测试计划 `bench/seckill-mixed.jmx`（可复现）：64 线程 / 30s / 80% 读 + 20% 写，走 Nginx 双实例。
+
+```bash
+curl -X POST "http://localhost:8080/admin/reset?stock=1000"
+cd bench && rm -rf results.jtl report
+jmeter -n -t seckill-mixed.jmx -l results.jtl -e -o report   # HTML 报告在 bench/report/
+curl "http://localhost:8080/admin/audit?stock=1000"           # 压后对账
+```
+
+| 采样器 | 吞吐 | P50 | P99 | MAX |
+|---|---|---|---|---|
+| GET /shop/{id} | 3,856/s | 11ms | 25ms | 79ms |
+| POST /voucher/{id}/seckill | 960/s | 18ms | 44ms | 96ms |
+| **合计** | **4,816/s** | | | 零错误 |
+
+对账：`mismatch=0`，1000 张券全部一致。
+
+> 踩坑：JMeter POST 的 Parameters 会放进请求体而非 query string（userId 缺失 400）；采样器 path 中嵌套 `${__LongSum(x,${__counter})}` 不展开导致 URISyntaxException——userId 直接用 `${__counter(FALSE,)}`（全局唯一即满足一人一券）。
+> 自研 HttpBench 同场景 5,989/s 略高于 JMeter（4,816/s），差值是 JMeter 采样统计开销。
