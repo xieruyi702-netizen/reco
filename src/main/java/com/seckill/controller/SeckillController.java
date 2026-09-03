@@ -57,6 +57,15 @@ public class SeckillController {
         return Map.of("code", r.ordinal(), "msg", r.name());
     }
 
+    /** 更新券详情（先更 DB → 删 L2 → pub/sub 广播踢全部实例 L1） */
+    @PostMapping("/{voucherId}/detail")
+    public Map<String, Object> updateDetail(@PathVariable long voucherId,
+                                            @RequestParam String name,
+                                            @RequestParam String description) {
+        boolean ok = voucherCacheService.updateDetail(voucherId, name, description);
+        return Map.of("code", ok ? 0 : 404, "msg", ok ? "updated" : "voucher not found");
+    }
+
     /** 加库存 */
     @PostMapping("/{voucherId}/addStock")
     public Map<String, Object> addStock(@PathVariable long voucherId, @RequestParam int amount) {

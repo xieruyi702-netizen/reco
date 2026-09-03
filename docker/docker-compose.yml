@@ -25,10 +25,16 @@ services:
 
   app1:
     <<: *app
+    environment:
+      <<: *app-env
+      SNOWFLAKE_WORKER_ID: 1
     container_name: seckill-app1
 
   app2:
     <<: *app
+    environment:
+      <<: *app-env
+      SNOWFLAKE_WORKER_ID: 2
     container_name: seckill-app2
 
   # 负载均衡：外部统一走 8080，轮询分发到 app1/app2

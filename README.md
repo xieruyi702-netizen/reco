@@ -257,3 +257,24 @@ GET /voucher/{id}/stock（高频变化数据 → 直读主库，不走缓存）
 |---|---|
 | 进程内纯读（L1 全命中） | **707 万 QPS，P99=1μs** |
 | JMeter 全链路混合（64线程 80/20，读走 detail） | **5,170 req/s 零错误**（此前读走 stock 为 4,526） |
+
+
+## 雪花算法 + 缓存失效广播（2026-09-03）
+
+### 雪花分布式 ID（修复真实 bug）
+
+原 orderNo = 时间戳<<20 + 进程内序列，**双实例会撞号**（各实例 seq 独立从 1 起）。替换为标准雪花（41 时间戳 + 5 datacenter + 5 worker + 12 序列），workerId 由 compose 注入（app1=1/app2=2），时钟回拨拒绝发号。
+实测：300 并发订单双实例产生，`COUNT(DISTINCT order_no) == COUNT(*) == 300`，零重复。
+
+### 多级缓存跨实例失效（Redis pub/sub）
+
+L1 一致性从"等 5s TTL"升级为"更新时秒级广播"：
+
+```
+POST /voucher/{id}/detail 更新详情
+  → UPDATE DB → DEL L2(Redis) → PUBLISH cache:invalidate {id}
+  → 所有实例订阅者收到 → 踢各自 Caffeine L1
+```
+
+pub/sub 是至多一次语义，丢消息时退化为 TTL 兜底（两层配合）。实测更新后立即读即返回新值。
+JMeter 回归：5,338 req/s 零错误（持续微升）。

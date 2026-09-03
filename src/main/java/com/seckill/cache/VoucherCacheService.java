@@ -84,6 +84,25 @@ public class VoucherCacheService {
         return detailMapper.selectDetail(voucherId);
     }
 
+    /** 更新详情：先更 DB → 删 L2 → 发布失效广播（所有实例踢 L1，跨实例最终一致秒级收敛） */
+    public boolean updateDetail(long voucherId, String name, String description) {
+        if (!bloom.mightContain(voucherId)) return false;
+        boolean updated = detailMapper.updateDetail(voucherId, name, description) > 0;
+        if (updated) {
+            try (Jedis j = master.getResource()) {
+                j.del("voucher:detail:" + voucherId);                    // 删 L2（Cache Aside）
+                j.publish("cache:invalidate", String.valueOf(voucherId)); // 广播踢各实例 L1
+            }
+            l1.invalidate(voucherId); // 自己的 L1 也踢
+        }
+        return updated;
+    }
+
+    /** 收到其他实例的失效广播时回调 */
+    public void evictLocal(long voucherId) {
+        l1.invalidate(voucherId);
+    }
+
     private String redisGet(String key) {
         int idx = Math.floorMod(rr.getAndIncrement(), replicas.pools.size());
         try (Jedis j = replicas.pools.get(idx).getResource()) {

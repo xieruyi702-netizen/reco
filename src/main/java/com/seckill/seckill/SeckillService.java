@@ -94,14 +94,13 @@ public class SeckillService {
         return Result.SUCCESS;
     }
 
-    private final java.util.concurrent.atomic.AtomicLong dbSeq = new java.util.concurrent.atomic.AtomicLong();
+    private final com.seckill.util.SnowflakeIdGen dbSnowflake = new com.seckill.util.SnowflakeIdGen(31, 1); // 基线压测专用 workerId
 
     /** 基线：纯 DB 乐观扣减（对比用）。唯一索引冲突视为失败（重复下单）。 */
     public boolean seckillDb(long voucherId, long userId) {
         if (voucherMapper.deductStock(voucherId) == 0) return false;
         try {
-            orderMapper.insertUnpaid((System.currentTimeMillis() << 20) | (dbSeq.incrementAndGet() & 0xFFFFF),
-                    voucherId, userId);
+            orderMapper.insertUnpaid(dbSnowflake.nextId(), voucherId, userId);
             return true;
         } catch (Exception e) {
             return false;

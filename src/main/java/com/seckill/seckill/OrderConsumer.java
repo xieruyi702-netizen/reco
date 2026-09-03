@@ -36,7 +36,10 @@ public class OrderConsumer {
     public OrderConsumer(OrderMapper orderMapper, VoucherMapper voucherMapper, @org.springframework.beans.factory.annotation.Qualifier("masterPool") JedisPool master,
                          @Value("${seckill.kafka.bootstrap}") String bootstrap,
                          @Value("${seckill.kafka.topic}") String topic,
-                         @Value("${seckill.order-timeout-ms}") long orderTimeoutMs) {
+                         @Value("${seckill.order-timeout-ms}") long orderTimeoutMs,
+                         @Value("${seckill.snowflake.worker-id}") long workerId,
+                         @Value("${seckill.snowflake.datacenter-id}") long datacenterId) {
+        this.snowflake = new com.seckill.util.SnowflakeIdGen(workerId, datacenterId);
         this.orderMapper = orderMapper;
         this.voucherMapper = voucherMapper;
         this.master = master;
@@ -107,11 +110,11 @@ public class OrderConsumer {
 
     private final java.util.concurrent.atomic.AtomicLong epochCache = new java.util.concurrent.atomic.AtomicLong(-1);
 
-    /** 业务订单号：时间戳左移 + 进程内序列，不依赖自增 id（不外露防遍历） */
-    private final java.util.concurrent.atomic.AtomicLong seq = new java.util.concurrent.atomic.AtomicLong();
+    /** 业务订单号：雪花算法（workerId 区分实例），不依赖自增 id（不外露防遍历） */
+    private final com.seckill.util.SnowflakeIdGen snowflake;
 
     long nextOrderNo() {
-        return (System.currentTimeMillis() << 20) | (seq.incrementAndGet() & 0xFFFFF);
+        return snowflake.nextId();
     }
     private volatile long epochCachedAt = 0;
 

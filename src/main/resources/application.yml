@@ -29,3 +29,6 @@ seckill:
     refill-per-sec: 5000
   # 订单超时未支付自动取消（压测 3s，生产为分钟级）
   order-timeout-ms: 3000
+  snowflake:
+    worker-id: 1      # 容器内由环境变量 SNOWFLAKE_WORKER_ID 覆盖（app1=1/app2=2），防多实例撞号
+    datacenter-id: 1
