@@ -36,6 +36,6 @@ public class DelayCancelScanner {
                 return; // 别的实例正在扫
             }
         }
-        payService.cancelExpired(200);
+        payService.cancelExpired(2000); // 批量化后单批可放大（原逐单版 200）
     }
 }

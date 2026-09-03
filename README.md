@@ -188,3 +188,25 @@ curl "http://localhost:8080/admin/audit?stock=1000"           # 压后对账
 ### JMeter 复测（64 线程 / 30s / 80读20写）
 
 **4,526 req/s 零错误**，对账（积压排空后）1000/1000 通过；实测 21,000 单超时取消、`min/max cancel 时延 = 14s/133s`（扫描批 200×2 实例/500ms 的排空速度，即消费积压期的取消延迟，健康期应秒级）。
+
+
+## 取消扫描批量化优化（2026-09-03）
+
+**瓶颈定位**：逐单取消 = 每单 3 次 DB（cancel/restore/zrem 状态）+ 2 次 Redis 往返，积压 2.7 万单时取消延迟最长 **133s**。
+
+**优化**（`PayService.cancelExpired` 重写）：
+1. 一次 `IN` 预查整批订单状态（已支付/已取消的只移出队列）
+2. `status=0` 的**一条 UPDATE 批量 CAS 取消**（`(voucher_id,user_id) IN (...)` + `cancel_time=NOW()`）
+3. **按券聚合回补**：同券 N 单合并为一条 `locked-N, available+N`
+4. Redis **pipeline** 幂等回滚（SREM 成功才 INCR）+ 批量 ZREM
+5. 扫描批量 200 → 2000
+
+**效果**（JMeter 同场景回归，4,529 req/s 零错误不变）：
+
+| 指标 | 逐单版 | 批量版 |
+|---|---|---|
+| 取消延迟 max | 133s | **33s** |
+| 取消延迟 min | 14s | 7s |
+| 队列排空时间 | ~2min | **~40s** |
+
+> 进一步优化路径：扫描锁当前保证单实例执行，可改为按 voucherId 分片多实例并行；或 ZSet 换时间轮。留作演进项。

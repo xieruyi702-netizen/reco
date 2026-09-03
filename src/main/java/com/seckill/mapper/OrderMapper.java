@@ -30,6 +30,20 @@ public interface OrderMapper {
             "WHERE voucher_id = #{voucherId} AND user_id = #{userId} AND status = 0")
     int cancel(@Param("voucherId") long voucherId, @Param("userId") long userId);
 
+    /** 批量状态预查（取消扫描用）：返回 (voucherId,userId)->status */
+    @Select("<script>SELECT voucher_id, user_id, status FROM tb_voucher_order WHERE " +
+            "(voucher_id, user_id) IN " +
+            "<foreach collection='keys' item='k' open='(' separator=',' close=')'>(#{k[0]},#{k[1]})</foreach>" +
+            "</script>")
+    java.util.List<Map<String, Object>> selectStatuses(@Param("keys") java.util.List<long[]> keys);
+
+    /** 批量 CAS 取消：仅待支付状态流转，回填 cancel_time */
+    @Update("<script>UPDATE tb_voucher_order SET status = 2, cancel_time = NOW() WHERE status = 0 AND " +
+            "(voucher_id, user_id) IN " +
+            "<foreach collection='keys' item='k' open='(' separator=',' close=')'>(#{k[0]},#{k[1]})</foreach>" +
+            "</script>")
+    int cancelBatch(@Param("keys") java.util.List<long[]> keys);
+
     @Select("SELECT COUNT(*) FROM tb_voucher_order")
     long countAll();
 

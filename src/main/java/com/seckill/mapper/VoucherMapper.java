@@ -38,6 +38,11 @@ public interface VoucherMapper {
             "WHERE voucher_id = #{voucherId} AND available > 0")
     int deductStock(@Param("voucherId") long voucherId);
 
+    /** 取消回池（批量聚合）：locked-N, available+N，一条 SQL 完成一批同券回补 */
+    @Update("UPDATE tb_seckill_voucher SET locked = locked - #{n}, available = available + #{n}, version = version + 1 " +
+            "WHERE voucher_id = #{voucherId}")
+    int restoreBatch(@Param("voucherId") long voucherId, @Param("n") int n);
+
     /** 加库存：DB 与 Redis 同增；version 乐观锁防与其他多字段更新并发丢失 */
     @Update("UPDATE tb_seckill_voucher SET available = available + #{amount}, version = version + 1 " +
             "WHERE voucher_id = #{voucherId} AND version = #{version}")
