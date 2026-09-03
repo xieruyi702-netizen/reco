@@ -90,3 +90,24 @@ java -cp target/classes:$(cat target/cp.txt) com.seckill.SeckillApplication --be
 3. 异步链路早期只写订单不扣 DB 库存，一致性校验暴露 → 消费者「INSERT IGNORE 成功才扣减」
 4. KafkaConsumer 非线程安全；group rebalance 一次性 2-3s 需从链路耗时中剔除
 5. Spring 注入两个 JedisPool 需要 @Primary/@Qualifier（无 -parameters 编译时按名注入失效）
+
+
+## HTTP 全链路压测（2026-09-03，双实例 + Nginx 加固版）
+
+压测路径：HttpBench(宿主机) → Nginx:8080(轮询) → app1/app2 双实例 → 容器化中间件。
+读写混合 80/20，64 线程 30s：
+
+| 指标 | 结果 |
+|---|---|
+| 总 QPS | **5,989**（读 4,783 / 写 1,206） |
+| 抢券成功 | 36,201 单，零错误 |
+| 对账 | 消费积压排空后 `/admin/audit` **mismatch=0，1000/1000 通过** |
+
+> 口径说明：数字远低于进程内压测（3 万+），因为这是**完整生产形态链路**——HTTP 解析 + Nginx 转发 + Docker NAT + Outbox 先落账（热路径多一次 DB 写）+ Kafka acks=all。这正是"过网络的真实数字"。
+
+### 本轮修复（都可作面试素材）
+
+1. **Nginx 400**：默认 `proxy_set_header` 把上游组名 `seckill_app`（含下划线）作为 Host 传给 Tomcat，被 RFC 7230 校验拒绝 → 显式 `proxy_set_header Host $host`
+2. **孤儿订单**：`/admin/reset` 截断订单表后，Kafka 在途/重放消息被重新消费，凭空重建订单（DB 库存 999 + Redis 1000 不一致）→ **代际栅栏**：reset 时写时间戳 epoch，消息体带发送时间，早于 epoch 的消息消费端直接作废
+3. **对账口径**：audit 必须只统计生效订单（status 0/1），已取消订单库存已回补
+4. **Outbox 同步发送拖垮写 P99**（52ms）：消息已落账后没必要同步等 Kafka ack → 改异步回调 markSent，失败交给中继，P99 降约 40%

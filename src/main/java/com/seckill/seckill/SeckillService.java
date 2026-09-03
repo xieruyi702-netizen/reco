@@ -110,15 +110,27 @@ public class SeckillService {
      * 先落库保证「Redis 已扣减但进程崩溃」时消息仍在，由中继补投，不存在丢消息窗口；
      * 发送成功即标记 SENT，避免中继重复扫描。
      */
-    void sendReliably(long voucherId, long userId) throws Exception {
-        String msgId = voucherId + ":" + userId;
-        localMessageMapper.insert(msgId, msgId); // 落账失败向上抛，seckill 会整体回滚 Redis
-        try {
-            producer.send(new ProducerRecord<>(topic, userId, msgId)).get(2, TimeUnit.SECONDS);
-            localMessageMapper.markSent(msgId);
-        } catch (Exception e) {
-            // 发送/markSent 失败不打断主流程：消息已落库，状态保持 PENDING，由 LocalMessageRelay 定时重投
+    /** 代际栅栏：记录 reset 时刻，早于该时刻发出的消息作废（防 reset 后重放消息生成孤儿订单） */
+    public long nextEpoch() {
+        long now = System.currentTimeMillis();
+        try (Jedis j = master.getResource()) {
+            j.set("seckill:epoch", String.valueOf(now));
         }
+        return now;
+    }
+
+    void sendReliably(long voucherId, long userId) throws Exception {
+        String body = voucherId + ":" + userId + ":" + System.currentTimeMillis();
+        String msgId = voucherId + ":" + userId;
+        localMessageMapper.insert(msgId, body); // 落账失败向上抛，seckill 会整体回滚 Redis
+        // 异步投递：消息已落账，可靠性由中继保证，热路径不等 ack（同步 get 会把 P99 拖到几十 ms）
+        producer.send(new ProducerRecord<>(topic, userId, body), (recordMetadata, e) -> {
+            if (e == null) {
+                try { localMessageMapper.markSent(msgId); }
+                catch (Exception ignored) { /* markSent 失败：消息已发，中继重投被消费端幂等吸收 */ }
+            }
+            // 发送失败：消息保持 PENDING，由 LocalMessageRelay 定时重投
+        });
     }
 
     /** 重置 Redis 库存与去重集合 */

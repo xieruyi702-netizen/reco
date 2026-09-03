@@ -42,6 +42,7 @@ public class AdminController {
             seckillService.resetRedis(v, stock);
         }
         seckillService.clearUnpaidQueue();
+        seckillService.nextEpoch(); // 代际栅栏：reset 后旧 Kafka 消息（重放/在途）一律作废，防孤儿订单
         return Map.of("code", 0, "msg", "reset to stock=" + stock);
     }
 
@@ -53,7 +54,7 @@ public class AdminController {
         for (long v = 1; v <= shopCount; v++) {
             long redisStock = seckillService.redisStock(v);
             Integer orders = jdbc.queryForObject(
-                    "SELECT COUNT(*) FROM tb_voucher_order WHERE voucher_id = ?", Integer.class, v);
+                    "SELECT COUNT(*) FROM tb_voucher_order WHERE voucher_id = ? AND status IN (0,1)", Integer.class, v); // 仅生效订单(待支付/已支付)，已取消的库存已回补
             long effective = orders == null ? 0 : orders;
             if (redisStock + effective != stock) {
                 mismatch++;

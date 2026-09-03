@@ -70,10 +70,27 @@ public class OrderConsumer {
         consumer.close();
     }
 
+    private final java.util.concurrent.atomic.AtomicLong epochCache = new java.util.concurrent.atomic.AtomicLong(-1);
+    private volatile long epochCachedAt = 0;
+
+    private long currentEpoch() {
+        long now = System.currentTimeMillis();
+        if (now - epochCachedAt > 1000 || epochCache.get() < 0) { // 1s 缓存，避免每消息一次 Redis GET
+            try (var j = master.getResource()) {
+                String v = j.get("seckill:epoch");
+                epochCache.set(v == null ? 0 : Long.parseLong(v));
+                epochCachedAt = now;
+            } catch (Exception ignore) {}
+        }
+        return epochCache.get();
+    }
+
     void handle(String msg) {
         String[] parts = msg.split(":");
         long voucherId = Long.parseLong(parts[0]);
         long userId = Long.parseLong(parts[1]);
+        long sentAt = parts.length > 2 ? Long.parseLong(parts[2]) : 0;
+        if (sentAt > 0 && sentAt < currentEpoch()) return; // 旧代消息（reset 前发出）作废
         if (orderMapper.insertUnpaid(voucherId, userId) > 0) { // 幂等：重复消息不会二次扣减
             voucherMapper.deductStock(voucherId);              // DB 库存同步扣减
             // 挂延迟队列：超时未支付自动取消（score = 截止时间戳 ms）。
