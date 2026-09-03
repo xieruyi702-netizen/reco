@@ -6,3 +6,6 @@ target/
 .DS_Store
 docker/mysql-init/data/
 dump.rdb
+bench/results.jtl
+bench/report/
+dump.rdb
