@@ -1,6 +1,8 @@
 package com.seckill.controller;
 
 import com.seckill.seckill.SeckillService;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,13 +26,24 @@ public class AdminController {
 
     private final JdbcTemplate jdbc;
     private final SeckillService seckillService;
+    private final Producer<Long, String> producer;
+    @Value("${seckill.kafka.topic}") private String topic;
     private final int voucherCount;
 
     public AdminController(JdbcTemplate jdbc, SeckillService seckillService,
+                           Producer<Long, String> producer,
                            @Value("${seckill.voucher-count}") int voucherCount) {
         this.jdbc = jdbc;
         this.seckillService = seckillService;
+        this.producer = producer;
         this.voucherCount = voucherCount;
+    }
+
+    /** 演示用：向主题注入一条毒消息（格式非法），验证 DLT 转运与主流不阻塞 */
+    @PostMapping("/poison")
+    public Map<String, Object> poison() throws Exception {
+        producer.send(new ProducerRecord<>(topic, "poison:not-a-number:xxx")).get();
+        return Map.of("code", 0, "msg", "poison injected, watch DLT topic " + topic + "-dlt");
     }
 
     /** 恢复初始态：三段库存重置、清订单/本地消息表、清延迟队列与 Redis 库存 */

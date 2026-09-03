@@ -224,3 +224,15 @@ curl "http://localhost:8080/admin/audit?stock=1000"           # 压后对账
 | Lua 内部失败 | 脚本先判后写、无中途失败点（Lua 是原子性非回滚） | AOF 丢秒级数据靠对账暴露 |
 | 落账成功、生产失败 | Outbox PENDING + 中继每秒重投 | retry 超限无死信告警 |
 | 生产成功、消费失败 | 手动提交 offset 重放 + INSERT IGNORE 幂等 | **缺死信队列，毒消息会卡分区**（下一步最值得补）
+
+
+## 死信队列（DLT，2026-09-03）
+
+修复消费链路最后的缺口：原 run() 对处理异常**静默吞掉**（毒消息无声丢弃）。现改为：
+
+```
+单条消息处理失败 → 原地重试 3 次（间隔 50ms×attempt，覆盖 DB 抖动等瞬时故障）
+      └─ 仍失败 → 投递 {topic}-dlt 死信主题（acks=all 同步确认）→ 放行 offset
+```
+
+实测：`POST /admin/poison` 注入非法消息，日志出现 `[DLT] 重试 3 次仍失败, 已转运死信主题 seckill-orders-dlt: poison:not-a-number:xxx / NumberFormatException`，死信主题可查，主流抢券不受影响。

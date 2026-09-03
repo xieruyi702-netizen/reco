@@ -6,6 +6,7 @@ import jakarta.annotation.PreDestroy;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.JedisPool;
@@ -28,6 +29,9 @@ public class OrderConsumer {
     private final long orderTimeoutMs;
     private final Thread worker;
     private volatile boolean running = true;
+    private final KafkaProducer<Long, String> deadProducer;
+    private final String dltTopic;
+    private static final int MAX_RETRY = 3;
 
     public OrderConsumer(OrderMapper orderMapper, VoucherMapper voucherMapper, @org.springframework.beans.factory.annotation.Qualifier("masterPool") JedisPool master,
                          @Value("${seckill.kafka.bootstrap}") String bootstrap,
@@ -46,6 +50,16 @@ public class OrderConsumer {
         p.put("auto.offset.reset", "earliest"); // group offset 丢失时从最早重放，靠幂等去重，宁可重复不丢消息
         this.consumer = new KafkaConsumer<>(p);
         this.consumer.subscribe(List.of(topic));
+
+        // 死信生产者：毒消息重试耗尽后转运到 {topic}-dlt，放行 offset 不卡分区
+        Properties dp = new Properties();
+        dp.put("bootstrap.servers", bootstrap);
+        dp.put("key.serializer", "org.apache.kafka.common.serialization.LongSerializer");
+        dp.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        dp.put("acks", "all");
+        this.deadProducer = new KafkaProducer<>(dp);
+        this.dltTopic = topic + "-dlt";
+
         this.worker = new Thread(this::run, "order-consumer");
         this.worker.setDaemon(true);
         this.worker.start();
@@ -58,16 +72,37 @@ public class OrderConsumer {
         while (running) {
             ConsumerRecords<Long, String> records = consumer.poll(Duration.ofMillis(200));
             for (ConsumerRecord<Long, String> r : records) {
-                try {
-                    handle(r.value());
-                } catch (Exception e) {
-                    // 单条解析/处理失败只记日志不中断批次；offset 照常推进，
-                    // 坏消息靠 DB 唯一索引与状态机兜底，不因毒消息卡死消费组
-                }
+                handleWithDlt(r.value());
             }
             if (!records.isEmpty()) consumer.commitSync(); // 处理完成才提交，宕机后从上次提交位重放
         }
         consumer.close();
+        deadProducer.close();
+    }
+
+    /**
+     * 死信队列：单条失败原地重试 3 次（多为瞬时故障：DB 抖动/连接池耗尽），
+     * 仍失败则投递 {topic}-dlt 并放行 offset——毒消息（格式错误等永久故障）不阻塞分区、不静默丢弃，可回溯可告警。
+     */
+    void handleWithDlt(String msg) {
+        for (int attempt = 1; attempt <= MAX_RETRY; attempt++) {
+            try {
+                handle(msg);
+                return;
+            } catch (Exception e) {
+                if (attempt == MAX_RETRY) {
+                    try {
+                        deadProducer.send(new org.apache.kafka.clients.producer.ProducerRecord<>(
+                                dltTopic, 0L, msg)).get(5, java.util.concurrent.TimeUnit.SECONDS);
+                        System.err.println("[DLT] 重试 " + MAX_RETRY + " 次仍失败, 已转运死信主题 " + dltTopic + ": " + msg + " / " + e);
+                    } catch (Exception sendFail) {
+                        System.err.println("[DLT] 死信投递也失败(需告警人工介入): " + msg + " / " + sendFail);
+                    }
+                } else {
+                    try { Thread.sleep(50L * attempt); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); return; }
+                }
+            }
+        }
     }
 
     private final java.util.concurrent.atomic.AtomicLong epochCache = new java.util.concurrent.atomic.AtomicLong(-1);
