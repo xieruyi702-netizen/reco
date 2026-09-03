@@ -134,3 +134,26 @@ curl "http://localhost:8080/admin/audit?stock=1000"           # 压后对账
 
 > 踩坑：JMeter POST 的 Parameters 会放进请求体而非 query string（userId 缺失 400）；采样器 path 中嵌套 `${__LongSum(x,${__counter})}` 不展开导致 URISyntaxException——userId 直接用 `${__counter(FALSE,)}`（全局唯一即满足一人一券）。
 > 自研 HttpBench 同场景 5,989/s 略高于 JMeter（4,816/s），差值是 JMeter 采样统计开销。
+
+
+## 模型简化（2026-09-03）：去商铺，用户 × 券
+
+应用户要求简化业务模型：移除商铺表/商铺缓存链路，核心实体只剩 **用户 × 券**。
+
+- 读：`GET /voucher/{id}/stock` —— 布隆过滤器（本地快照）拦无效券 id，直读 Redis 主库（余量高频变化不做缓存）
+- 写：`POST /voucher/{id}/seckill?userId=u` —— 一人一券一次（Lua SISMEMBER + DB 唯一索引双层保证）
+- **加库存**：`POST /voucher/{id}/addStock?amount=n` —— 写操作增加券量，DB 与 Redis 同增，加量后此前抢失败的用户可再抢
+
+保留：令牌桶限流、Lua 原子扣减、Outbox 本地消息表、Kafka 异步落库、订单状态机、ZSet 延迟取消、epoch 栅栏、/admin 对账。
+
+### 简化后 JMeter 复测（64 线程 / 30s / 80读20写）
+
+| 采样器 | 吞吐 | P50 | P99 |
+|---|---|---|---|
+| GET /voucher/{id}/stock | 3,812/s | ~11ms | ~25ms |
+| POST /voucher/{id}/seckill | 960/s | 19ms | 53ms |
+| **合计** | **4,768/s，零错误** | | |
+
+对账（积压排空后）：`mismatch=0`，1000 张券全部一致。
+
+> 移除多级缓存（Caffeine L1）后读链路少了本地命中层——原 592 万 QPS 的缓存数字随商铺模型一并移除，当前读链路以 Redis 直读为上限。

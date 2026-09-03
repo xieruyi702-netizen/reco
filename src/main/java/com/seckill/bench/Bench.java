@@ -1,10 +1,9 @@
 package com.seckill.bench;
 
-import com.seckill.cache.ShopCacheService;
 import com.seckill.mapper.LocalMessageMapper;
 import com.seckill.mapper.OrderMapper;
-import com.seckill.mapper.ShopMapper;
 import com.seckill.mapper.VoucherMapper;
+import com.seckill.seckill.VoucherService;
 import com.seckill.seckill.PayService;
 import com.seckill.seckill.SeckillService;
 import org.springframework.boot.ApplicationArguments;
@@ -28,11 +27,10 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class Bench implements ApplicationRunner {
 
-    static final int SHOPS = 1000;
+    static final int SHOPS = 1000; // 券总数（去商铺模型）
     static final long HOT = 1;
 
-    private final ShopCacheService shopCache;
-    private final ShopMapper shopMapper;
+    private final VoucherService voucherService;
     private final SeckillService seckill;
     private final PayService pay;
     private final VoucherMapper voucherMapper;
@@ -41,11 +39,10 @@ public class Bench implements ApplicationRunner {
     private final JdbcTemplate jdbc;
     private final JedisPool master;
 
-    public Bench(ShopCacheService shopCache, ShopMapper shopMapper, SeckillService seckill,
+    public Bench(VoucherService voucherService, SeckillService seckill,
                  PayService pay, VoucherMapper voucherMapper, OrderMapper orderMapper,
                  LocalMessageMapper localMessageMapper, JdbcTemplate jdbc, @org.springframework.beans.factory.annotation.Qualifier("masterPool") JedisPool master) {
-        this.shopCache = shopCache;
-        this.shopMapper = shopMapper;
+        this.voucherService = voucherService;
         this.seckill = seckill;
         this.pay = pay;
         this.voucherMapper = voucherMapper;
@@ -64,7 +61,6 @@ public class Bench implements ApplicationRunner {
         try (var j = master.getResource()) { j.flushAll(); }
 
         switch (bench.get(0)) {
-            case "cache" -> benchCache(threads);
             case "seckill" -> benchSeckill(args, threads, intArg(args, "users", 50000));
             case "mixed" -> benchMixed(args, threads, intArg(args, "duration", 30));
             default -> {}
@@ -75,63 +71,6 @@ public class Bench implements ApplicationRunner {
     static int intArg(ApplicationArguments args, String name, int def) {
         List<String> v = args.getOptionValues(name);
         return v == null || v.isEmpty() ? def : Integer.parseInt(v.get(0));
-    }
-
-    // ---------- 缓存压测 ----------
-    void benchCache(int threads) throws Exception {
-        System.out.println("压测: 直连 MySQL（MyBatis）...");
-        Result r1 = runCache(threads, 20, shopMapper::selectName);
-        printCache("none(db)", threads, r1);
-
-        System.out.println("压测: L1 Caffeine + L2 Redis(从库) + 布隆...");
-        Result r2 = runCache(threads, 20, shopCache::queryShop);
-        printCache("multi-level", threads, r2);
-    }
-
-    interface Query { String query(long id); }
-
-    Result runCache(int threads, int durationSec, Query q) throws InterruptedException {
-        long endNanos = System.nanoTime() + durationSec * 1_000_000_000L;
-        long[] lat = new long[2_000_000];
-        Result r = new Result();
-        CountDownLatch latch = new CountDownLatch(threads);
-        long start = System.nanoTime();
-        for (int t = 0; t < threads; t++) {
-            new Thread(() -> {
-                while (System.nanoTime() < endNanos) {
-                    // 90% 合法 id，10% 恶意不存在 id（穿透攻击）
-                    long id = ThreadLocalRandom.current().nextInt(10) < 9
-                            ? 1 + ThreadLocalRandom.current().nextInt(SHOPS)
-                            : 100_001 + ThreadLocalRandom.current().nextInt(1000);
-                    long s = System.nanoTime();
-                    String v = q.query(id);
-                    long l = (System.nanoTime() - s) / 1000;
-                    int idx = r.count.incrementAndGet() - 1;
-                    if (v == null) r.nullCount.incrementAndGet();
-                    if (idx < lat.length) lat[idx] = l;
-                }
-                latch.countDown();
-            }).start();
-        }
-        latch.await();
-        r.qps = r.count.get() / ((System.nanoTime() - start) / 1e9);
-        int n = Math.min(r.count.get(), lat.length);
-        long[] copy = Arrays.copyOf(lat, n);
-        Arrays.sort(copy);
-        r.p99 = copy[(int) (n * 0.99)];
-        return r;
-    }
-
-    void printCache(String label, int threads, Result r) {
-        System.out.printf(Locale.ROOT,
-                "RESULT cache=%-12s threads=%d QPS=%.0f P99=%dus total=%d blocked=%d%n",
-                label, threads, r.qps, r.p99, r.count.get(), r.nullCount.get());
-    }
-
-    static class Result {
-        final AtomicInteger count = new AtomicInteger();
-        final AtomicInteger nullCount = new AtomicInteger();
-        double qps; long p99;
     }
 
     // ---------- 秒杀压测 ----------
@@ -239,10 +178,9 @@ public class Bench implements ApplicationRunner {
                     long shop = 1 + rnd.nextLong(SHOPS);
                     if (rnd.nextInt(100) < readPercent) {
                         long s = System.nanoTime();
-                        String d = shopCache.queryShopDetail(shop);
+                        voucherService.queryStock(shop);
                         int idx = reads.incrementAndGet() - 1;
                         if (idx < readLat.length) readLat[idx] = (System.nanoTime() - s) / 1000;
-                        if (d == null) System.err.println("unexpected null shop " + shop);
                     } else {
                         // 写：抢券。全局唯一 userId 满足一人一券一次；Lua 去重集合兜底
                         long u = userIds.getAndIncrement();

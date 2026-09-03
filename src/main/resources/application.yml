@@ -22,7 +22,7 @@ seckill:
   kafka:
     bootstrap: 127.0.0.1:9092
     topic: seckill-orders
-  shop-count: 1000
+  voucher-count: 1000
   # 秒杀接口令牌桶：容量 200，补充 5000/s
   rate:
     capacity: 200

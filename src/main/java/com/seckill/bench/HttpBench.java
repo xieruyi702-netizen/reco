@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * HTTP 层压测：客户端 → Nginx(8080, 轮询) → app1/app2 双实例 → 容器化中间件。
- * 读 = GET /shop/{id}（多级缓存 + 券余量）；写 = POST /voucher/{id}/seckill?userId=u（一人一券一次）。
+ * 读 = GET /voucher/{id}/stock（布隆防穿透 + Redis 直读）；写 = POST /voucher/{id}/seckill?userId=u（一人一券一次）。
  *
  * 用法：HttpBench [baseUrl] [threads] [durationSec] [readPercent]
  */
@@ -59,7 +59,7 @@ public class HttpBench {
                         int status;
                         String body;
                         if (rnd.nextInt(100) < readPercent) {
-                            HttpRequest req = HttpRequest.newBuilder(URI.create(base + "/shop/" + id)).GET().build();
+                            HttpRequest req = HttpRequest.newBuilder(URI.create(base + "/voucher/" + id + "/stock")).GET().build();
                             HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
                             status = resp.statusCode(); body = resp.body();
                             int idx = reads.incrementAndGet() - 1;

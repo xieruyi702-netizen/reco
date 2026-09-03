@@ -15,11 +15,9 @@ public class SchemaInit {
 
     @jakarta.annotation.PostConstruct
     public void init() {
-        jdbc.execute("CREATE TABLE IF NOT EXISTS tb_shop (" +
-                "id BIGINT PRIMARY KEY, name VARCHAR(64) NOT NULL, address VARCHAR(128))");
         jdbc.execute("CREATE TABLE IF NOT EXISTS tb_seckill_voucher (" +
-                "voucher_id BIGINT PRIMARY KEY, shop_id BIGINT NOT NULL, stock INT NOT NULL, " +
-                "UNIQUE KEY uk_shop (shop_id))");
+                "voucher_id BIGINT PRIMARY KEY, stock INT NOT NULL)");
+        jdbc.execute("DROP TABLE IF EXISTS tb_shop");
         jdbc.execute("CREATE TABLE IF NOT EXISTS tb_voucher_order (" +
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, voucher_id BIGINT NOT NULL, " +
                 "user_id BIGINT NOT NULL, status TINYINT NOT NULL DEFAULT 0, " +
@@ -30,17 +28,10 @@ public class SchemaInit {
                 "body VARCHAR(128) NOT NULL, status TINYINT NOT NULL DEFAULT 0, " +
                 "retry INT NOT NULL DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
-        Long shops = jdbc.queryForObject("SELECT COUNT(*) FROM tb_shop", Long.class);
-        if (shops != null && shops < 1000) {
-            jdbc.batchUpdate("INSERT IGNORE INTO tb_shop(id, name, address) VALUES(?,?,?)",
-                    java.util.stream.IntStream.rangeClosed(1, 1000)
-                            .mapToObj(i -> new Object[]{(long) i, "shop_" + i, "address_" + i})
-                            .toList());
-        }
-        jdbc.batchUpdate("INSERT INTO tb_seckill_voucher(voucher_id, shop_id, stock) VALUES(?,?,1000) " +
+        jdbc.batchUpdate("INSERT INTO tb_seckill_voucher(voucher_id, stock) VALUES(?,1000) " +
                         "ON DUPLICATE KEY UPDATE stock = 1000",
                 java.util.stream.IntStream.rangeClosed(1, 1000)
-                        .mapToObj(i -> new Object[]{(long) i, (long) i})
+                        .mapToObj(i -> new Object[]{(long) i})
                         .toList());
         jdbc.execute("TRUNCATE tb_voucher_order");
         jdbc.execute("TRUNCATE tb_local_message");

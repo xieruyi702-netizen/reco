@@ -23,13 +23,13 @@ public class AdminController {
 
     private final JdbcTemplate jdbc;
     private final SeckillService seckillService;
-    private final int shopCount;
+    private final int voucherCount;
 
     public AdminController(JdbcTemplate jdbc, SeckillService seckillService,
-                           @Value("${seckill.shop-count}") int shopCount) {
+                           @Value("${seckill.voucher-count}") int voucherCount) {
         this.jdbc = jdbc;
         this.seckillService = seckillService;
-        this.shopCount = shopCount;
+        this.voucherCount = voucherCount;
     }
 
     /** 恢复初始态：券库存重置、清订单/本地消息表、清延迟队列与 Redis 库存 */
@@ -38,7 +38,7 @@ public class AdminController {
         jdbc.update("UPDATE tb_seckill_voucher SET stock = ?", stock);
         jdbc.execute("TRUNCATE tb_voucher_order");
         jdbc.execute("TRUNCATE tb_local_message");
-        for (long v = 1; v <= shopCount; v++) {
+        for (long v = 1; v <= voucherCount; v++) {
             seckillService.resetRedis(v, stock);
         }
         seckillService.clearUnpaidQueue();
@@ -51,7 +51,7 @@ public class AdminController {
     public Map<String, Object> audit(@RequestParam(defaultValue = "1000") int stock) {
         long mismatch = 0;
         Map<String, Object> sample = new LinkedHashMap<>();
-        for (long v = 1; v <= shopCount; v++) {
+        for (long v = 1; v <= voucherCount; v++) {
             long redisStock = seckillService.redisStock(v);
             Integer orders = jdbc.queryForObject(
                     "SELECT COUNT(*) FROM tb_voucher_order WHERE voucher_id = ? AND status IN (0,1)", Integer.class, v); // 仅生效订单(待支付/已支付)，已取消的库存已回补
@@ -63,7 +63,7 @@ public class AdminController {
         }
         Map<String, Object> r = new LinkedHashMap<>();
         r.put("code", mismatch == 0 ? 0 : 1);
-        r.put("total_vouchers", shopCount);
+        r.put("total_vouchers", voucherCount);
         r.put("mismatch", mismatch);
         r.put("passed", mismatch == 0);
         r.put("mismatch_samples", sample);

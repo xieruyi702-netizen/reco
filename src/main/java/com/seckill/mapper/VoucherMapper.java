@@ -18,6 +18,9 @@ public interface VoucherMapper {
     @Update("UPDATE tb_seckill_voucher SET stock = #{stock} WHERE voucher_id = #{voucherId}")
     int resetStock(@Param("voucherId") long voucherId, @Param("stock") int stock);
 
+    @Update("UPDATE tb_seckill_voucher SET stock = stock + #{amount} WHERE voucher_id = #{voucherId}")
+    int addStock(@Param("voucherId") long voucherId, @Param("amount") int amount);
+
     @Update("UPDATE tb_seckill_voucher SET stock = #{stock}")
     int resetAllStock(@Param("stock") int stock);
 }
