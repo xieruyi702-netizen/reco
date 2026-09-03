@@ -20,7 +20,6 @@ public class SchemaInit {
                 "voucher_id BIGINT PRIMARY KEY, available INT NOT NULL DEFAULT 0, " +
                 "locked INT NOT NULL DEFAULT 0, sold INT NOT NULL DEFAULT 0, " +
                 "version BIGINT NOT NULL DEFAULT 0, " +
-                "start_time DATETIME NOT NULL, end_time DATETIME NOT NULL, " +
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
         jdbc.execute("DROP TABLE IF EXISTS tb_shop");
@@ -37,12 +36,10 @@ public class SchemaInit {
                 "retry INT NOT NULL DEFAULT 0, sent_at DATETIME NULL, " +
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
-        java.time.LocalDateTime start = java.time.LocalDateTime.now().minusDays(1);
-        java.time.LocalDateTime end = java.time.LocalDateTime.now().plusYears(1);
-        jdbc.batchUpdate("INSERT INTO tb_seckill_voucher(voucher_id, available, start_time, end_time) " +
-                        "VALUES(?, 1000, ?, ?) ON DUPLICATE KEY UPDATE available = 1000, locked = 0, sold = 0, version = version + 1",
+        jdbc.batchUpdate("INSERT INTO tb_seckill_voucher(voucher_id, available) " +
+                        "VALUES(?, 1000) ON DUPLICATE KEY UPDATE available = 1000, locked = 0, sold = 0, version = version + 1",
                 java.util.stream.IntStream.rangeClosed(1, 1000)
-                        .mapToObj(i -> new Object[]{(long) i, start, end})
+                        .mapToObj(i -> new Object[]{(long) i})
                         .toList());
         jdbc.execute("TRUNCATE tb_voucher_order");
         jdbc.execute("TRUNCATE tb_local_message");

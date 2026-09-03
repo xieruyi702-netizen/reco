@@ -54,11 +54,6 @@ public interface VoucherMapper {
     @Update("UPDATE tb_seckill_voucher SET available = #{stock}, locked = 0, sold = 0, version = version + 1")
     int resetAllStock(@Param("stock") int stock);
 
-    /** 时间窗（内存缓存加载用） */
-    @Select("SELECT voucher_id, UNIX_TIMESTAMP(start_time)*1000 AS startMs, UNIX_TIMESTAMP(end_time)*1000 AS endMs " +
-            "FROM tb_seckill_voucher")
-    List<Map<String, Object>> selectAllWindows();
-
     /** audit 用：分段快照 */
     @Select("SELECT voucher_id, available, locked, sold FROM tb_seckill_voucher")
     List<Map<String, Object>> selectAllSegments();

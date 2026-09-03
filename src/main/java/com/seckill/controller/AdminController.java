@@ -1,7 +1,6 @@
 package com.seckill.controller;
 
 import com.seckill.seckill.SeckillService;
-import com.seckill.seckill.VoucherService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,14 +24,12 @@ public class AdminController {
 
     private final JdbcTemplate jdbc;
     private final SeckillService seckillService;
-    private final VoucherService voucherService;
     private final int voucherCount;
 
-    public AdminController(JdbcTemplate jdbc, SeckillService seckillService, VoucherService voucherService,
+    public AdminController(JdbcTemplate jdbc, SeckillService seckillService,
                            @Value("${seckill.voucher-count}") int voucherCount) {
         this.jdbc = jdbc;
         this.seckillService = seckillService;
-        this.voucherService = voucherService;
         this.voucherCount = voucherCount;
     }
 
@@ -47,7 +44,6 @@ public class AdminController {
         }
         seckillService.clearUnpaidQueue();
         seckillService.nextEpoch(); // 代际栅栏：reset 后旧 Kafka 消息（重放/在途）一律作废，防孤儿订单
-        voucherService.loadWindows(); // 重载时间窗缓存
         return Map.of("code", 0, "msg", "reset to stock=" + stock);
     }
 
