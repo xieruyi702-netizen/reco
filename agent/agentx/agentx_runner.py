@@ -100,6 +100,14 @@ def stage_design(task: dict, backbone) -> list[dict]:
 
 # ---------------- Stage 2: per-stage execution ----------------
 
+TACTIC_HINTS = {
+    "table": "Tactic: for counting questions ALWAYS use SQL aggregation "
+             "(SELECT COUNT(*), COUNT(DISTINCT col)) instead of manually counting rows.",
+    "graph": "Tactic: for counting questions, traverse then count node ids from the returned lists programmatically.",
+    "rag": "Tactic: quote the exact sentence that contains the answer before finalizing.",
+}
+
+
 def run_stage(task: dict, backbone, tools: ProfileTools, stage: dict):
     marker = len(tools.trace)
     stage_answer = react_loop(task, backbone, tools,
@@ -166,7 +174,7 @@ def run_s7_agentx(task: dict, backbone, tools: ProfileTools) -> dict:
         summary = summarize_stage(task, backbone, stage, trajectory, stage_answer)
         summaries.append({"idx": idx, "surface": stage["surface"], "summary": summary})
 
-    answer = synthesize(task, backbone, summaries)
+    answer = normalize_answer(synthesize(task, backbone, summaries), task)
     return {
         "chosen_surfaces": sorted(tools.surfaces_used),
         "rag_files": sorted(tools.rag_files),
@@ -194,6 +202,25 @@ def stratified_sample(tasks: list[dict], n: int, seed: int = 7) -> list[dict]:
             if pool and len(picked) < n:
                 picked.append(pool.pop(random.randrange(len(pool))))
     return picked
+
+
+import re as _re
+
+
+def normalize_answer(answer: str, task: dict) -> str:
+    """规则化后处理（零成本修格式分）：剥前缀/引号/句号，多段分隔符统一为 '; '。"""
+    a = answer.strip()
+    a = _re.sub(r'^(the final answer is|the answer is|answer:)\s*', '', a, flags=_re.I)
+    a = a.strip('"\''  ).rstrip('.').strip()
+    parts = [p.strip() for p in a.split(';')]
+    if len(parts) == 1:
+        m = _re.match(r'^(.+\.(?:csv|xlsx|docx|pdf|md|txt)),\s*(.+)$', a, flags=_re.I)
+        if m:
+            parts = [m.group(1), m.group(2)]
+    if len(parts) > 1:
+        a = '; '.join(parts)
+    # 列表型 gold（list）若答案为多个值也用 '; ' 连接（synthesizer 已被约束）
+    return a
 
 
 def main():
