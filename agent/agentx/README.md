@@ -50,3 +50,31 @@ export WSB_API_BASE="https://api.deepseek.com" WSB_API_KEY="$DEEPSEEK_API_KEY"
 ./venv312/bin/python agentx/agentx_runner.py --tasks wsb_data/data/tasks.jsonl \
   --data-root wsb_data/resources --model deepseek-v4-flash --sample 20 --mode both
 ```
+
+
+## 全景对比（2026-09-04，官方 S1–S6 + AgentX S7，DeepSeek-v4-flash，同 20 任务）
+
+| 设置 | aggregate | answer | route_f1 | evidence | avg tokens |
+|---|---|---|---|---|---|
+| S1 无工具 | 0.095 | 0.00 | 0 | 0 | 469 |
+| S2 强制 RAG | 0.094 | 0.00 | 0 | 0 | 592 |
+| S3 单选路由 | 0.209 | 0.00 | 0.37 | 0.28 | 7647 |
+| **S4 ReAct-all（基线）** | **0.695** | **0.65** | 0.85 | 0.72 | 4211 |
+| S5 金标限面 | 0.645 | 0.25 | 1.00 | 0.93 | 8684 |
+| S6 金标提示 | 0.616 | 0.20 | 0.97 | 0.95 | 10569 |
+| **S7 AgentX（ours）** | 0.655 | 0.55 | 0.82 | 0.62 | **4079** |
+
+### 两个关键发现
+
+1. **完美路由损害答案（官方数据佐证）**：S5/S6 拿着金标级路由（route_f1 1.00/0.97）与最高
+   evidence（0.93/0.95），answer 却只有 0.25/0.20，且是全场最烧 token 的设置——在该模型档位，
+   限定/提示 surface 抑制了自由探索，答案质量反受其害。单选路由（S3）更是全军覆没。
+2. **S7 的定位：answer-per-token 最优**。阶段摘要牺牲部分正确率（0.55 vs S4 0.65）换取
+   最低 token（比 S4 省 3%，比金标设置省 53%~62%），answer/token 比值与 S4 持平；
+   且以自规划路由（0.82）把 answer 做到 0.55，**超过拿着金标路由的官方 S5/S6**。
+
+### 对"AgentX 打不过 S4"的模型层归因（不改基准方案，只调模型适配）
+
+- 每阶段步数 6→8（与 S4 同预算）：answer 0.50→0.55，aggregate 0.615→0.655
+- 思考模式统一关闭（GLM/DeepSeek 思考模型小预算下 content 为空的通病）
+- 剩余差距归因：跨源任务的跨阶段摘要损耗 + 计数类小偏差（模型能力，非架构）

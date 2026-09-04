@@ -1,0 +1,688 @@
+{
+  "overall": {
+    "n": 20,
+    "route_f1": 0.0,
+    "route_precision": 0.0,
+    "route_recall": 0.0,
+    "evidence": 0.0,
+    "answer": 0.0,
+    "efficiency": 0.9518,
+    "safety": null,
+    "aggregate": 0.0952
+  },
+  "by_task_type": {
+    "cross_surface": {
+      "n": 20,
+      "route_f1": 0.0,
+      "route_precision": 0.0,
+      "route_recall": 0.0,
+      "evidence": 0.0,
+      "answer": 0.0,
+      "efficiency": 0.9518,
+      "safety": null,
+      "aggregate": 0.0952
+    }
+  },
+  "per_task": [
+    {
+      "id": "pool_gt_0001",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9443,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0944
+    },
+    {
+      "id": "pool_gt_0002",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9563,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0956
+    },
+    {
+      "id": "pool_gt_0003",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9716,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0972
+    },
+    {
+      "id": "pool_gt_0004",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9151,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0915
+    },
+    {
+      "id": "pool_gt_0005",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9687,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0969
+    },
+    {
+      "id": "pool_gt_0006",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9399,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.094
+    },
+    {
+      "id": "pool_gt_0007",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9659,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0966
+    },
+    {
+      "id": "pool_gt_0008",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.931,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0931
+    },
+    {
+      "id": "pool_gt_0009",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9693,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0969
+    },
+    {
+      "id": "pool_gt_0010",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9674,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0967
+    },
+    {
+      "id": "pool_gt_0011",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9697,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.097
+    },
+    {
+      "id": "pool_gt_0012",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.8625,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0863
+    },
+    {
+      "id": "pool_gt_0013",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9781,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0978
+    },
+    {
+      "id": "pool_gt_0014",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9526,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0953
+    },
+    {
+      "id": "pool_gt_0018",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9633,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0963
+    },
+    {
+      "id": "pool_gt_0020",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9399,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.094
+    },
+    {
+      "id": "pool_gt_0022",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9634,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0963
+    },
+    {
+      "id": "pool_gt_0023",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9809,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0981
+    },
+    {
+      "id": "pool_gt_0024",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9672,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0967
+    },
+    {
+      "id": "pool_gt_0025",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.9281,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0928
+    }
+  ]
+}

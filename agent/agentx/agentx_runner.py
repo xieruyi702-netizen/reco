@@ -103,7 +103,7 @@ def stage_design(task: dict, backbone) -> list[dict]:
 def run_stage(task: dict, backbone, tools: ProfileTools, stage: dict):
     marker = len(tools.trace)
     stage_answer = react_loop(task, backbone, tools,
-                              allowed_surfaces=[stage["surface"]], max_steps=6)
+                              allowed_surfaces=[stage["surface"]], max_steps=8)
     # 只取轨迹尾部最近 6 个动作（前面的探索动作已过时，且防止 table_list 之类
     # 大结果把截断窗口塞满、挤掉真正携带答案的 table_query）
     tail = json.dumps(tools.trace[marker:][-6:], ensure_ascii=False)[:4000]
