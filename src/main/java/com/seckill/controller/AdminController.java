@@ -1,6 +1,10 @@
 package com.seckill.controller;
 
 import com.seckill.seckill.SeckillService;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.ListOffsetsResult;
+import org.apache.kafka.clients.admin.OffsetSpec;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,6 +33,7 @@ public class AdminController {
     private final SeckillService seckillService;
     private final Producer<Long, String> producer;
     @Value("${seckill.kafka.topic}") private String topic;
+    @Value("${seckill.kafka.bootstrap}") private String kafkaBootstrap;
     private final int voucherCount;
 
     public AdminController(JdbcTemplate jdbc, SeckillService seckillService,
@@ -37,6 +43,33 @@ public class AdminController {
         this.seckillService = seckillService;
         this.producer = producer;
         this.voucherCount = voucherCount;
+    }
+
+    /** 巡检数据源（Agent patrol 工具用）：订单分布 / 待投递消息 / DLT 死信堆积 */
+    @GetMapping("/stats")
+    public Map<String, Object> stats() {
+        Map<String, Object> r = new LinkedHashMap<>();
+        List<Map<String, Object>> byStatus = jdbc.queryForList(
+                "SELECT status, COUNT(*) AS cnt FROM tb_voucher_order GROUP BY status");
+        long unpaid = 0, paid = 0, canceled = 0;
+        for (var row : byStatus) {
+            int st = ((Number) row.get("status")).intValue();
+            long cnt = ((Number) row.get("cnt")).longValue();
+            if (st == 0) unpaid = cnt; else if (st == 1) paid = cnt; else canceled = cnt;
+        }
+        r.put("orders", Map.of("unpaid", unpaid, "paid", paid, "canceled", canceled));
+        r.put("outbox_pending", jdbc.queryForObject("SELECT COUNT(*) FROM tb_local_message WHERE status = 0", Long.class));
+
+        long dltLag = -1;
+        try (AdminClient admin = AdminClient.create(
+                Map.of("bootstrap.servers", kafkaBootstrap))) {
+            var tp = new TopicPartition("seckill-orders-dlt", 0);
+            ListOffsetsResult.ListOffsetsResultInfo info = admin.listOffsets(Map.of(tp, OffsetSpec.latest()))
+                    .all().get(3, java.util.concurrent.TimeUnit.SECONDS).get(tp);
+            dltLag = info.offset(); // 单分区死信主题：latest offset 即历史死信总量
+        } catch (Exception ignored) {}
+        r.put("dlt_total", dltLag);
+        return r;
     }
 
     /** 演示用：向主题注入一条毒消息（格式非法），验证 DLT 转运与主流不阻塞 */

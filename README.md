@@ -278,3 +278,19 @@ POST /voucher/{id}/detail 更新详情
 
 pub/sub 是至多一次语义，丢消息时退化为 TTL 兜底（两层配合）。实测更新后立即读即返回新值。
 JMeter 回归：5,338 req/s 零错误（持续微升）。
+
+## AI 运营 Multi-Agent（2026-09-04，LangGraph + GLM）
+
+系统新增自然语言运维入口：**LangGraph supervisor 多智能体**（总调度 + 查询/补货/巡检三专员），工具即真实系统 REST。
+
+```
+用户："巡检系统状态，看看券9余量，低于990就补100"
+  supervisor 结构化路由 → patrol_agent 巡检（识别死信堆积⚠️）
+  → supervisor → query_agent 查余量（1000）
+  → supervisor 判定条件不满足 → FINISH，综合报告（补货正确未触发）
+```
+
+- Java 侧新增 `/admin/stats` 巡检数据源（Kafka AdminClient 查 DLT 堆积）
+- 工程
+细节：supervisor 防死循环（提示词约束+图级 8 跳护栏）、收工 LLM 总结、容器内 Kafka 地址注入、系统代理劫持 localhost 的直连修复
+- 详见 `agent/README.md`
