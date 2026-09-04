@@ -1,0 +1,209 @@
+{
+  "overall": {
+    "n": 4,
+    "route_f1": 0.7417,
+    "route_precision": 0.625,
+    "route_recall": 1.0,
+    "evidence": 0.625,
+    "answer": 0.75,
+    "efficiency": 0.3035,
+    "safety": null,
+    "aggregate": 0.6657
+  },
+  "by_task_type": {
+    "cross_surface": {
+      "n": 1,
+      "route_f1": 0.8,
+      "route_precision": 0.6667,
+      "route_recall": 1.0,
+      "evidence": 0.5,
+      "answer": 0.0,
+      "efficiency": 0.0,
+      "safety": null,
+      "aggregate": 0.35
+    },
+    "table_only": {
+      "n": 1,
+      "route_f1": 0.6667,
+      "route_precision": 0.5,
+      "route_recall": 1.0,
+      "evidence": 1.0,
+      "answer": 1.0,
+      "efficiency": 0.5534,
+      "safety": null,
+      "aggregate": 0.872
+    },
+    "rag_only": {
+      "n": 1,
+      "route_f1": 0.5,
+      "route_precision": 0.3333,
+      "route_recall": 1.0,
+      "evidence": 0.0,
+      "answer": 1.0,
+      "efficiency": 0.0,
+      "safety": null,
+      "aggregate": 0.475
+    },
+    "graph_only": {
+      "n": 1,
+      "route_f1": 1.0,
+      "route_precision": 1.0,
+      "route_recall": 1.0,
+      "evidence": 1.0,
+      "answer": 1.0,
+      "efficiency": 0.6605,
+      "safety": null,
+      "aggregate": 0.966
+    }
+  },
+  "per_task": [
+    {
+      "id": "pool_rg_0156",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.8,
+        "precision": 0.6667,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "graph",
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.5,
+        "per_surface": {
+          "graph": 1.0,
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.0,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.35
+    },
+    {
+      "id": "pool_t_0152",
+      "task_type": "table_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 0.6667,
+        "precision": 0.5,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "table"
+        ],
+        "needed": [
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "table": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {
+          "gold": 7.0,
+          "pred": 7.0
+        }
+      },
+      "efficiency": 0.5534,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.872
+    },
+    {
+      "id": "pool_r_0146",
+      "task_type": "rag_only",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.5,
+        "precision": 0.3333,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {}
+      },
+      "efficiency": 0.0,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.475
+    },
+    {
+      "id": "ws_lite_87_q001",
+      "task_type": "graph_only",
+      "answer_type": "list",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "graph"
+        ],
+        "needed": [
+          "graph"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "graph": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4,
+          "n_gold": 4,
+          "n_pred": 4
+        }
+      },
+      "efficiency": 0.6605,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.966
+    }
+  ]
+}

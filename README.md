@@ -294,3 +294,19 @@ JMeter 回归：5,338 req/s 零错误（持续微升）。
 - 工程
 细节：supervisor 防死循环（提示词约束+图级 8 跳护栏）、收工 LLM 总结、容器内 Kafka 地址注入、系统代理劫持 localhost 的直连修复
 - 详见 `agent/README.md`
+
+
+## AgentX：阶段式 Agent 受控评测（2026-09-04，WorkSurface-Bench + DeepSeek-v4-flash）
+
+接入北大 WorkSurface-Bench（1151 任务，RAG/Table/Graph 跨源知识路由，确定性评分），
+实现 **S7 阶段式工作流**（Stage-Designer → 限面 ReAct → Stage-Summarizer → Synthesizer）
+与官方 S4 ReAct-all 基线受控对跑（20 任务分层抽样）。
+
+迭代过程（每轮都有量化依据）：
+- v1 均匀分阶段：跨源任务正确率 40%→0%（阶段摘要信息瓶颈）
+- v2 条件分阶段：单 surface 任务不拆，恢复部分正确率
+- v3 Designer 偏过多包含 + 答案格式纪律：answer 0.40→0.50，token 比 S4 省 24%
+
+结论（诚实版）：强模型 + 短预算场景下，阶段式的 token 节省（-24%）伴随正确率代价
+（0.50 vs 0.65）——分阶段收益与模型上下文纪律能力成反比，应作为可配置策略。
+详见 `agent/agentx/README.md`。
