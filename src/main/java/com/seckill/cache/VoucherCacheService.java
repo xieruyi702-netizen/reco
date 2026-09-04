@@ -10,6 +10,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.params.SetParams;
 
 import java.time.Duration;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -65,8 +66,10 @@ public class VoucherCacheService {
                 if ("OK".equals(j.set(lockKey, "1", SetParams.setParams().nx().px(3000)))) {
                     try {
                         String detail = detailMapper.selectDetail(voucherId);
-                        if (detail != null) j.setex("voucher:detail:" + voucherId, 1800, detail);
-                        else j.setex("voucher:detail:" + voucherId, 60, NULL_VALUE); // 空值缓存 60s
+                        // TTL 加随机抖动（±10%）：避免同批预热/同时重建的 key 同时过期引发缓存雪崩
+                        int ttl = 1800 + ThreadLocalRandom.current().nextInt(-180, 180);
+                        if (detail != null) j.setex("voucher:detail:" + voucherId, ttl, detail);
+                        else j.setex("voucher:detail:" + voucherId, 60, NULL_VALUE); // 空值缓存 60s（短，刻意不加抖动）
                         l1.put(voucherId, detail == null ? NULL_VALUE : detail);
                         return detail;
                     } finally {
