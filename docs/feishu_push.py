@@ -5,7 +5,24 @@ import json, subprocess, time, sys
 DOC = "FWifdaXU5oLy03xrn9Nc9gKDnvV"
 S = "/Users/a1021501009/.cursor/skills/xieruyi_feishu/scripts/feishu_docs.py"
 
+sys.path.insert(0, "/Users/a1021501009/.cursor/skills/xieruyi_feishu/scripts")
+import feishu_docs as fd
+
+def token():
+    return fd.get_tenant_token(fd.load_credentials())
+
 def api(method, path, body=None):
+    if method == "DELETE":
+        tok = token()
+        r = subprocess.run(["curl", "-s", "-X", "DELETE",
+            f"https://open.feishu.cn/open-apis{path}",
+            "-H", f"Authorization: Bearer {tok}",
+            "-H", "Content-Type: application/json; charset=utf-8",
+            "-d", json.dumps(body or {}, ensure_ascii=False)], capture_output=True, text=True)
+        try:
+            return json.loads(r.stdout)
+        except Exception:
+            print("DEL ERR:", r.stdout[:300]); sys.exit(1)
     sub = "raw-post" if method == "POST" else ("raw-patch" if method == "PATCH" else "raw-get")
     cmd = ["python3", S, sub, "--path", path]
     if body is not None:
@@ -30,6 +47,8 @@ def md_to_blocks(md):
             blocks.append(block(5, "heading3", line[4:]))
         elif line.startswith("## "):
             blocks.append(block(4, "heading2", line[3:]))
+        elif line == "---":
+            blocks.append({"block_type": 22, "divider": {}})
         elif line.startswith("# "):
             blocks.append(block(3, "heading1", line[2:]))
         elif line.startswith("- "):
@@ -39,6 +58,19 @@ def md_to_blocks(md):
         else:
             blocks.append(block(2, "text", line))
     return blocks
+
+# 清空旧内容（batch_delete 全部 children）
+r = api("GET", f"/docx/v1/documents/{DOC}/blocks/{DOC}/children?page_size=500")
+items = r.get("data", {}).get("items") or []
+if items:
+    for i in range(0, len(items), 400):
+        chunk = items[i:i+400]
+        r2 = api("DELETE", f"/docx/v1/documents/{DOC}/blocks/{DOC}/children/batch_delete?document_revision_id=-1",
+                 {"start_index": i, "end_index": i + len(chunk)})
+        if r2.get("code") not in (0, None):
+            print("DEL ERR:", json.dumps(r2, ensure_ascii=False)[:300]); sys.exit(1)
+        time.sleep(0.4)
+    print("cleared", len(items))
 
 md = open(sys.argv[1], encoding="utf-8").read()
 blocks = md_to_blocks(md)
