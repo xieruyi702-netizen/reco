@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import json
+import re as _re
 
 from runner.tools import ProfileTools
 
@@ -84,7 +85,40 @@ def execute(task: dict, tools: ProfileTools, steps: list[dict]) -> list[dict]:
     return results
 
 
-def run_s8_plan_execute(task: dict, backbone, tools: ProfileTools, repair: bool = True) -> dict:
+def _numeric_conflict(answer: str, results: list[dict]) -> int:
+    """自洽校验（零 gold 依赖）：合成答案为纯数字、且轨迹里恰有一个 COUNT 聚合
+    结果数字与之不符 → 判定模型眼数出错，返回权威数字；否则返回 None。"""
+    a = answer.strip()
+    if not a.replace('.','').replace('-','').isdigit():
+        return None
+    candidates = set()
+    for r in results:
+        if r["tool"] == "table_query":
+            sql = (r["args"] or {}).get("sql", "").upper()
+            if "COUNT" in sql:
+                for tok in _re.findall(r"\d+", r["result"]):
+                    candidates.add(int(tok))
+    try:
+        ans_n = int(float(a))
+    except ValueError:
+        return None
+    if len(candidates) == 1 and ans_n not in candidates:
+        return candidates.pop()
+    return None
+
+
+def _low_confidence(answer: str, results: list[dict]) -> bool:
+    if "insufficient" in answer.lower() or "not enough" in answer.lower():
+        return True
+    if any((r["result"] or "").startswith("ERROR") or (r["result"] or "") == "[]" for r in results):
+        return True
+    return False
+
+
+def run_s8_plan_execute(task: dict, backbone, tools: ProfileTools, repair: bool = True,
+                        escalate=None) -> dict:
+    """escalate: 置信不足时的升级回调（全工具 ReAct）；None 表示不升级。"""
+    escalated = False
     env = env_snapshot(task, tools)
     steps = plan(task, backbone, env=env)
     results = execute(task, tools, steps)
@@ -107,6 +141,16 @@ def run_s8_plan_execute(task: dict, backbone, tools: ProfileTools, repair: bool 
             f"Question: {task['question']}\n\nExecuted plan results:\n{body}",
             max_tokens=400)
 
+    # ---- Verify/升级段（零 gold 依赖，只用自身工具证据）----
+    fixed = _numeric_conflict(answer, results)
+    if fixed is not None:
+        answer = str(fixed)  # 眼数被工具 COUNT 证伪，校正为聚合结果
+    if escalate is not None and (
+            fixed is not None or _low_confidence(answer, results)):
+        escalated = True
+        tools2_marker = len(tools.trace)
+        answer = escalate(task, backbone, tools)  # 全工具 ReAct，8 步
+        _ = tools2_marker
     return {
         "chosen_surfaces": sorted(tools.surfaces_used),
         "rag_files": sorted(tools.rag_files),
@@ -117,4 +161,6 @@ def run_s8_plan_execute(task: dict, backbone, tools: ProfileTools, repair: bool 
         "question_text": task["question"],
         "s8_plan": steps,
         "s8_results": results,
+        "escalated": escalated,
+        "numeric_fixed": fixed is not None,
     }

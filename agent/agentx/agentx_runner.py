@@ -231,6 +231,7 @@ def main():
     ap.add_argument("--sample", type=int, default=20)
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--mode", choices=["both", "s4", "s7", "staged"], default="both")
+    ap.add_argument("--no-escalate", action="store_true", help="S7 关闭置信升级（纯 PE）")
     ap.add_argument("--outdir", default="runs")
     args = ap.parse_args()
 
@@ -260,9 +261,17 @@ def main():
                                                      + backbone.cum_usage["output"])
                         elif setting == "S7-STAGED":
                             trace = run_s7_agentx(task, backbone, tools)
-                        else:  # S7 = Plan-and-Execute（规划一次 + 无 LLM 确定性执行）
+                        else:  # S7 = Plan-and-Execute + 置信升级（全工具 ReAct 兜底）
                             from plan_execute import run_s8_plan_execute
-                            trace = run_s8_plan_execute(task, backbone, tools)
+
+                            def _escalate(t, bb, tl):
+                                from runner.agents import run_s4_react_all
+                                tr = run_s4_react_all(t, bb, tl)
+                                return tr["answer"]
+
+                            trace = run_s8_plan_execute(
+                                task, backbone, tools,
+                                escalate=None if args.no_escalate else _escalate)
                     finally:
                         tools.close()
                 except Exception as e:  # noqa: BLE001
