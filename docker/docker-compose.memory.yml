@@ -1,0 +1,15 @@
+# 记忆库基础设施：Redis 8（向量+工作记忆）+ MySQL 8.4（事实元数据/审计）
+services:
+  memory-redis:
+    image: redis:8.0
+    container_name: agent-memory-redis
+    ports: ["6380:6379"]
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+
+  memory-mysql:
+    image: mysql:8.4
+    container_name: agent-memory-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: agent_memory
+    ports: ["3307:3306"]

@@ -1,4 +1,4 @@
-# AgentX —— 企业知识 Multi-Agent：自研 ReAct / 阶段式 / Plan-and-Execute 三架构受控评测
+# Agent —— 带分层记忆的企业知识 Agent（LoCoMo 受控评测 + WorkSurface-Bench 任务执行）
 
 面向企业知识路由场景的 Agent 系统与评测工程。基于北大 **WorkSurface-Bench**
 （arXiv:2607.25765，1151 任务：文档检索 / DuckDB 表格 / 依赖图谱 / 跨源混合，确定性评分）
@@ -14,6 +14,13 @@
 | S4 ReAct（基线） | 每步交错"思考→行动→观察" | 精度优先 | agg 0.695 / answer 0.65 / 4211 tok |
 | S7 阶段式 | 拆解→分段限面 ReAct→摘要接力 | 介于两者 | agg 0.645 / answer 0.55 / 4093 tok |
 | **S7 Plan-and-Execute** | 计划一次→无 LLM 确定性执行→汇总 | **效率优先** | agg 0.602 / answer 0.40 / **1173 tok** |
+
+记忆扩展（当前核心）：`memory/` 模块实现**被动分层记忆**——
+- 写路径（确定性流水线，无 ReAct）：会话 → LLM 原子事实抽取（含时间戳/实体键）→
+  向量去重≥0.93 → 时序冲突标记(0.88-0.93 同主体新覆旧) → 分层入库
+  （语义事实 / 情景摘要 / 原始轮次带向量）
+- 读路径：轻量 ReAct ≤4 步，三工具（memory_search 语义检索 / timeline 时序 / history_scan 原文窗口）
+- 基础设施：Redis 8（Docker，事实+轮次+向量）+ fastembed 本地嵌入（bge-small-en，确定性）
 
 核心发现：
 - **完美路由损害答案**：官方 S5/S6 拿金标路由 answer 仅 0.25/0.20（S4=0.65）——强模型下
@@ -65,3 +72,14 @@ python -m scoring.score_run --tasks wsb_data/data/tasks.jsonl \
 
 - [agentx/README.md](agentx/README.md) —— 三架构对比、S1–S7 全景、迭代全记录（含负结果）
 - [docs/legacy/README-seckill.md](docs/legacy/README-seckill.md) —— 前身秒杀系统归档
+
+
+## 记忆消融（LoCoMo conv-26，40 题分层抽样，DeepSeek-v4-flash，token-F1）
+
+| 配置 | overall F1 | multi_hop | single_hop | temporal | adversarial | LLM调用 |
+|---|---|---|---|---|---|---|
+| rag_only（纯原文 RAG 对照） | 0.148 | 0.29 | 0.10 | 0.27 | 0.00 | 228 |
+| **layered（分层记忆）** | **0.324** | **0.48** | **0.48** | **0.49** | 0.00 | **138** |
+
+分层记忆 overall +117% 且 LLM 调用更少（事实抽取一次入库复用）。负结果与局限：
+拒答校准为负优化已回退（0.324→0.245）；对抗类 token-F1 恒 0 属评分口径局限（需 LLM-judge）。
