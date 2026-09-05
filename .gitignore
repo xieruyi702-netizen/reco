@@ -4,3 +4,4 @@ __pycache__/
 data_locomo/
 runs_mem/
 data_locomo/
+target/
