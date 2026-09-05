@@ -74,12 +74,24 @@ python -m scoring.score_run --tasks wsb_data/data/tasks.jsonl \
 - [docs/legacy/README-seckill.md](docs/legacy/README-seckill.md) —— 前身秒杀系统归档
 
 
-## 记忆消融（LoCoMo conv-26，40 题分层抽样，DeepSeek-v4-flash，token-F1）
+## 记忆消融（LoCoMo conv-26，40 题分层抽样，DeepSeek-v4-flash，官方对齐评分）
 
-| 配置 | overall F1 | multi_hop | single_hop | temporal | adversarial | LLM调用 |
-|---|---|---|---|---|---|---|
-| rag_only（纯原文 RAG 对照） | 0.148 | 0.29 | 0.10 | 0.27 | 0.00 | 228 |
-| **layered（分层记忆）** | **0.324** | **0.48** | **0.48** | **0.49** | 0.00 | **138** |
+评分逐条对齐官方 `task_eval/evaluation.py`：cat2/3/4 归一化 token-F1、cat1 逗号拆子答案
+逐 gold 取 max、cat5 对抗题按官方子串规则（输出含 "not mentioned"/"no information
+available" 即正确——本地 flash 模型两配置均为 1.0，拒答行为正常）。
 
-分层记忆 overall +117% 且 LLM 调用更少（事实抽取一次入库复用）。负结果与局限：
-拒答校准为负优化已回退（0.324→0.245）；对抗类 token-F1 恒 0 属评分口径局限（需 LLM-judge）。
+| 配置 | overall | multi_hop | single_hop | temporal | open_domain | adversarial | LLM调用 |
+|---|---|---|---|---|---|---|---|
+| rag_only（纯原文 RAG 对照） | 0.357 | 0.31 | 0.06 | 0.34 | 0.08 | 1.00 | 228 |
+| **layered（分层记忆）** | **0.529** | **0.43** | **0.51** | **0.52** | **0.18** | 1.00 | **138** |
+
+分层记忆 overall +48%，multi_hop +40%、single_hop 近 9 倍，且 LLM 调用更少
+（抽取一次入库 40 题复用 vs 每题反复扫原文）。
+（原始严格 token-F1 口径：0.324 vs 0.148，结论方向一致；重打分脚本
+`memory/rescore_official.py` 零 LLM 成本可复现。）
+
+### 拒答校准消融（负结果，已回退）
+
+强制"证据不直接支撑则输出 Not mentioned"导致过度拒答：overall 0.324→0.245（v2 轨迹
+`runs_mem_v2` 于 git 历史 a293181 可查）。模型无法可靠自评证据充分性——校准应放在
+评分层（官方子串规则）而非行为层。

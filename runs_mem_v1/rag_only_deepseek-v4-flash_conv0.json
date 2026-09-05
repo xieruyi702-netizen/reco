@@ -1,0 +1,333 @@
+{
+ "config": "rag_only",
+ "overall": 0.1480133265427383,
+ "by_cat": {
+  "4": 0.2912698412698413,
+  "1": 0.09803921568627451,
+  "2": 0.271969696969697,
+  "5": 0.0,
+  "3": 0.0787878787878788
+ },
+ "rows": [
+  {
+   "id": "What pet does Caroline have?",
+   "cat": 4,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "guinea pig",
+   "steps": 1
+  },
+  {
+   "id": "What does Melanie do to destress?",
+   "cat": 1,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "Running, pottery",
+   "steps": 1
+  },
+  {
+   "id": "When did Caroline draw a self-portrait?",
+   "cat": 2,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "The week before 23 August 2023",
+   "steps": 1
+  },
+  {
+   "id": "How did Caroline feel about her family a",
+   "cat": 5,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "They are important and mean the world to her",
+   "steps": 1
+  },
+  {
+   "id": "What fields would Caroline be likely to ",
+   "cat": 3,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "Psychology, counseling certification",
+   "steps": 1
+  },
+  {
+   "id": "What does Caroline's necklace symbolize?",
+   "cat": 4,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "love, faith, and strength",
+   "steps": 0
+  },
+  {
+   "id": "What transgender-specific events has Car",
+   "cat": 1,
+   "f1": 0.6666666666666666,
+   "answer": "Transgender conference and transgender poetry reading.",
+   "gold": "Poetry reading, conference",
+   "steps": 1
+  },
+  {
+   "id": "When did Caroline pass the adoption inte",
+   "cat": 2,
+   "f1": 0.6,
+   "answer": "22 October 2023 (last Friday).",
+   "gold": "The Friday before 22 October 2023",
+   "steps": 1
+  },
+  {
+   "id": "What country is Melanie's grandma from?",
+   "cat": 5,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "Sweden",
+   "steps": 1
+  },
+  {
+   "id": "Would Melanie be considered an ally to t",
+   "cat": 3,
+   "f1": 0.18181818181818182,
+   "answer": "Yes, Melanie supported Caroline's trans journey and advocacy.",
+   "gold": "Yes, she is supportive",
+   "steps": 1
+  },
+  {
+   "id": "What does Melanie think about Caroline's",
+   "cat": 4,
+   "f1": 0.1111111111111111,
+   "answer": "Melanie is supportive and enthusiastic, praising Caroline's kindness.",
+   "gold": "she thinks Caroline is doing something amazing and will be a",
+   "steps": 1
+  },
+  {
+   "id": "What items has Melanie bought?",
+   "cat": 1,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "Figurines, shoes",
+   "steps": 1
+  },
+  {
+   "id": "When did Melanie get hurt?",
+   "cat": 2,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "September 2023",
+   "steps": 1
+  },
+  {
+   "id": "What kind of place does Melanie want to ",
+   "cat": 5,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "a safe and inviting place for people to grow",
+   "steps": 1
+  },
+  {
+   "id": "Would Caroline still want to pursue coun",
+   "cat": 3,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "Likely no",
+   "steps": 0
+  },
+  {
+   "id": "What did Melanie and her family do while",
+   "cat": 4,
+   "f1": 0.9333333333333333,
+   "answer": "Explored nature, roasted marshmallows, went on a hike.",
+   "gold": "explored nature, roasted marshmallows, and went on a hike",
+   "steps": 1
+  },
+  {
+   "id": "In what ways is Caroline participating i",
+   "cat": 1,
+   "f1": 0.11764705882352941,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "Joining activist group, going to pride parades, participatin",
+   "steps": 1
+  },
+  {
+   "id": "When did Melanie make a plate in pottery",
+   "cat": 2,
+   "f1": 0.6666666666666666,
+   "answer": "25 August, 2023",
+   "gold": "24 August 2023",
+   "steps": 1
+  },
+  {
+   "id": "What is Melanie excited about in her ado",
+   "cat": 5,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "creating a family for kids who need one",
+   "steps": 1
+  },
+  {
+   "id": "Would Melanie be more interested in goin",
+   "cat": 3,
+   "f1": 0.26666666666666666,
+   "answer": "National park — Melanie loves nature and outdoor family time.",
+   "gold": "National park; she likes the outdoors",
+   "steps": 1
+  },
+  {
+   "id": "What kind of counseling and mental healt",
+   "cat": 4,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "working with trans people, helping them accept themselves an",
+   "steps": 1
+  },
+  {
+   "id": "What has Melanie painted?",
+   "cat": 1,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "Horse, sunset, sunrise",
+   "steps": 1
+  },
+  {
+   "id": "When is Caroline's youth center putting ",
+   "cat": 2,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "September 2023",
+   "steps": 1
+  },
+  {
+   "id": "Why did Melanie choose the adoption agen",
+   "cat": 5,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "because of their inclusivity and support for LGBTQ+ individu",
+   "steps": 1
+  },
+  {
+   "id": "Would Caroline pursue writing as a caree",
+   "cat": 3,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "LIkely no; though she likes reading, she wants to be a couns",
+   "steps": 0
+  },
+  {
+   "id": "What do sunflowers represent according t",
+   "cat": 4,
+   "f1": 1.0,
+   "answer": "Warmth and happiness.",
+   "gold": "warmth and happiness",
+   "steps": 1
+  },
+  {
+   "id": "What instruments does Melanie play?",
+   "cat": 1,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "clarinet and violin",
+   "steps": 1
+  },
+  {
+   "id": "When is Melanie planning on going campin",
+   "cat": 2,
+   "f1": 0.0,
+   "answer": "Next month (June 2023), per her May 25 message.",
+   "gold": "June 2023",
+   "steps": 1
+  },
+  {
+   "id": "How did Caroline's son handle the accide",
+   "cat": 5,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "He was scared but reassured by his family",
+   "steps": 1
+  },
+  {
+   "id": "Would Melanie go on another roadtrip soo",
+   "cat": 3,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "Likely no; since this one went badly",
+   "steps": 1
+  },
+  {
+   "id": "What is Caroline excited about in the ad",
+   "cat": 4,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "creating a family for kids who need one",
+   "steps": 1
+  },
+  {
+   "id": "What do Melanie's kids like?",
+   "cat": 1,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "dinosaurs, nature",
+   "steps": 1
+  },
+  {
+   "id": "When did Melanie paint a sunrise?",
+   "cat": 2,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "2022",
+   "steps": 1
+  },
+  {
+   "id": "What happened to Caroline's son on their",
+   "cat": 5,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "He got into an accident",
+   "steps": 1
+  },
+  {
+   "id": "Would Caroline want to move back to her ",
+   "cat": 3,
+   "f1": 0.18181818181818182,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "No; she's in the process of adopting children.",
+   "steps": 1
+  },
+  {
+   "id": "What was grandma's gift to Caroline?",
+   "cat": 4,
+   "f1": 0.2857142857142857,
+   "answer": "A necklace symbolizing love, faith, and strength.",
+   "gold": "necklace",
+   "steps": 1
+  },
+  {
+   "id": "What events has Caroline participated in",
+   "cat": 1,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "Mentoring program, school speech",
+   "steps": 1
+  },
+  {
+   "id": "When did Melanie go to the pottery works",
+   "cat": 2,
+   "f1": 0.9090909090909091,
+   "answer": "Last Friday before 15 July 2023.",
+   "gold": "The Friday before 15 July 2023",
+   "steps": 1
+  },
+  {
+   "id": "What kind of counseling workshop did Mel",
+   "cat": 5,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "LGBTQ+ counseling workshop",
+   "steps": 1
+  },
+  {
+   "id": "Would Melanie likely enjoy the song \"The",
+   "cat": 3,
+   "f1": 0.0,
+   "answer": "Not mentioned in the conversation.",
+   "gold": "Yes; it's classical music",
+   "steps": 1
+  }
+ ]
+}
