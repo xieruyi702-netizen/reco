@@ -75,7 +75,24 @@ modelVersion（统计分桶版本号，改版本 = 统计重置）、臂列表�
 
 > "UCB 的公式和 reward 定义是算法同学定的；我负责把它工程化：选臂接口做成纯函数可离线单测（UcbAlgorithmTest 三组用例覆盖冷启动/平局/参数校验），结算链路用 Lua 保证原子、过期 pending 定时批量清理保证统计干净，全部参数收进 Apollo/实验配置支持在线调参与回滚。另外我治理过同模块的配套基础设施——匹配分布式锁和延迟队列的原子消费。"
 
-## 五、追问预案
+## 五、一次用户到来的完整决策流程（代码级）
+
+入口：UcbDelayServiceImpl.selectDelayAndCreatePending(recoContext)。
+
+0. 资格检查：免费男 + 实验开关，不满足走默认延迟（UCB 是可选策略不是必经之路）
+1. 配置兜底：Apollo 拉臂列表/α/coldStart，先验合法性，非法降级 + 打点 invalid_config
+2. 定分段：读付费等级属性 → HIGH/MID/LOW
+3. 读统计：HGETALL 该分段臂统计，Redis 失败则降级
+4. UCB1 选臂：count<3 冷启动臂优先；否则 均值 + α·sqrt(ln N / count) 取最高
+5. 创建 pending 归因凭证：Lua 原子写入（arm/matchTime/modelVersion/segment，1h 过期）
+6. 透传决策：ucbArmDelaySeconds 等参数注入请求，下游据此设 ZSet score
+
+收益回流：支付回调 → calculate 算 reward → settleLatestPaid 原子结算；挂断回调 → 通话时长分档（≥60s=1.0，否则 0.5）；均未发生 → 定时批量冲销归 0。
+兜底链条：四个失败点（资格/配置/读/写）全部降级默认延迟并分别打点——策略是实验性的，稳定性是无条件的。
+
+---
+
+## 六、追问预案
 
 | 追问 | 应答 |
 |---|---|
