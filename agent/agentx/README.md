@@ -91,3 +91,21 @@ export WSB_API_BASE="https://api.deepseek.com" WSB_API_KEY="$DEEPSEEK_API_KEY"
 消融结论：目标注入是负优化（内层 agent 被阶段 goal 收窄探索面）；答案归一化中性
 （保留，对格式变体更稳健）。同配置重复运行方差约 ±1 个百分点（20 任务样本量下）。
 最终配置收敛于 v4/v6：**answer 0.55 vs S4 0.65，token -3%，且超过金标路由的 S5/S6**。
+
+
+## 全量评测：S4 ReAct-all × 1151 任务（官方 sweep，DeepSeek-v4-flash）
+
+官方 `runner.sweep`（并发 100 + `retry_errors` 补跑，最终 0 错误），并生成论文同款
+`runs_full/tables/table3_main_results.md`：
+
+| 指标 | 论文 DeepSeek-V4-Pro | 本次 flash 全量 | 差异解读 |
+|---|---|---|---|
+| route_f1 | 79.1 | **76.9** | 接近——flash 路由能力与 pro 相当 |
+| evidence | 77.2 | **76.3** | 几乎一致——证据获取不是短板 |
+| answer | 67.9 | 54.2 | **-13.7——合成/精度是 flash 的短板** |
+| efficiency | 27.2 | 13.4 | flash 轨迹更长（弱模型多试错） |
+| aggregate | 69.4 | **62.4** | 主要被 answer/efficiency 拖累 |
+
+结论：**路由与证据获取能力上 flash ≈ pro（差异 <3 分），全部差距集中在答案合成与
+效率**——这为"外挂确定性校验/合成增强"（Verify-Act 方向）提供了量化依据：如果把
+answer 从 54 提到 67（pro 水平），flash 配置就能以零模型成本追平论文基线。

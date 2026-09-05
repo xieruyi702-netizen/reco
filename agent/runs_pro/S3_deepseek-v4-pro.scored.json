@@ -1,0 +1,778 @@
+{
+  "overall": {
+    "n": 20,
+    "route_f1": 0.6667,
+    "route_precision": 0.7,
+    "route_recall": 0.65,
+    "evidence": 0.45,
+    "answer": 0.55,
+    "efficiency": 0.4046,
+    "safety": null,
+    "aggregate": 0.5346
+  },
+  "by_task_type": {
+    "cross_surface": {
+      "n": 5,
+      "route_f1": 0.2667,
+      "route_precision": 0.4,
+      "route_recall": 0.2,
+      "evidence": 0.2,
+      "answer": 0.4,
+      "efficiency": 0.5717,
+      "safety": null,
+      "aggregate": 0.3238
+    },
+    "table_only": {
+      "n": 5,
+      "route_f1": 1.0,
+      "route_precision": 1.0,
+      "route_recall": 1.0,
+      "evidence": 0.8,
+      "answer": 0.8,
+      "efficiency": 0.3636,
+      "safety": null,
+      "aggregate": 0.8064
+    },
+    "rag_only": {
+      "n": 5,
+      "route_f1": 1.0,
+      "route_precision": 1.0,
+      "route_recall": 1.0,
+      "evidence": 0.4,
+      "answer": 0.6,
+      "efficiency": 0.2835,
+      "safety": null,
+      "aggregate": 0.6083
+    },
+    "graph_only": {
+      "n": 5,
+      "route_f1": 0.4,
+      "route_precision": 0.4,
+      "route_recall": 0.4,
+      "evidence": 0.4,
+      "answer": 0.4,
+      "efficiency": 0.3995,
+      "safety": null,
+      "aggregate": 0.3999
+    }
+  },
+  "per_task": [
+    {
+      "id": "pool_rg_0156",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "graph",
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.6538,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0654
+    },
+    {
+      "id": "pool_t_0152",
+      "task_type": "table_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "table": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {
+          "gold": 7.0,
+          "pred": 7.0
+        }
+      },
+      "efficiency": 0.6196,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.962
+    },
+    {
+      "id": "pool_r_0146",
+      "task_type": "rag_only",
+      "answer_type": "string",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "rag"
+        ],
+        "needed": [
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {}
+      },
+      "efficiency": 0.4775,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.6477
+    },
+    {
+      "id": "ws_lite_87_q001",
+      "task_type": "graph_only",
+      "answer_type": "list",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "graph"
+        ],
+        "needed": [
+          "graph"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "graph": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4,
+          "n_gold": 4,
+          "n_pred": 4
+        }
+      },
+      "efficiency": 0.4714,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.9471
+    },
+    {
+      "id": "pool_gt_0030",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.6667,
+        "precision": 1.0,
+        "recall": 0.5,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.5,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {
+          "method": "ordered_composite_exact",
+          "n_gold": 2,
+          "n_pred": 2
+        }
+      },
+      "efficiency": 0.6474,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.7314
+    },
+    {
+      "id": "pool_t_0098",
+      "task_type": "table_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "table": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {
+          "gold": 2.0,
+          "pred": 2.0
+        }
+      },
+      "efficiency": 0.0,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.9
+    },
+    {
+      "id": "ws_lite_92_aq003",
+      "task_type": "rag_only",
+      "answer_type": "string",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "rag"
+        ],
+        "needed": [
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.0,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.25
+    },
+    {
+      "id": "ws_lite_373_exg_count",
+      "task_type": "graph_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [
+          "rag"
+        ],
+        "needed": [
+          "graph"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "reason": "unparseable",
+          "pred": "INSUFFICIENT_EVIDENCE"
+        }
+      },
+      "efficiency": 0.4069,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0407
+    },
+    {
+      "id": "pool_rg_0012",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "graph",
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.6392,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0639
+    },
+    {
+      "id": "pool_t_0297",
+      "task_type": "table_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "table": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {
+          "gold": 9.0,
+          "pred": 9.0
+        }
+      },
+      "efficiency": 0.6485,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.9648
+    },
+    {
+      "id": "pool_r_0210",
+      "task_type": "rag_only",
+      "answer_type": "string",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "rag"
+        ],
+        "needed": [
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "rag": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {}
+      },
+      "efficiency": 0.4212,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.9421
+    },
+    {
+      "id": "ws_lite_124_exg_count",
+      "task_type": "graph_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "graph"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "reason": "unparseable",
+          "pred": "INSUFFICIENT_EVIDENCE"
+        }
+      },
+      "efficiency": 0.5973,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0597
+    },
+    {
+      "id": "ws_lite_47_xgt_0043",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.6667,
+        "precision": 1.0,
+        "recall": 0.5,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.5,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {
+          "method": "ordered_composite_exact",
+          "n_gold": 2,
+          "n_pred": 2
+        }
+      },
+      "efficiency": 0.2599,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.6927
+    },
+    {
+      "id": "ws_lite_37_ext_0086",
+      "task_type": "table_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {
+          "gold": 47.0,
+          "pred": 47.0
+        }
+      },
+      "efficiency": 0.5499,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.655
+    },
+    {
+      "id": "pool_r_0085",
+      "task_type": "rag_only",
+      "answer_type": "string",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "rag"
+        ],
+        "needed": [
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.0,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.25
+    },
+    {
+      "id": "ws_lite_115_q001",
+      "task_type": "graph_only",
+      "answer_type": "list",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "graph"
+        ],
+        "needed": [
+          "graph"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "graph": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 17,
+          "n_gold": 17,
+          "n_pred": 17
+        }
+      },
+      "efficiency": 0.5221,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.9522
+    },
+    {
+      "id": "pool_rg_0008",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "graph",
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.6584,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0658
+    },
+    {
+      "id": "ws_lite_288_aq001",
+      "task_type": "table_only",
+      "answer_type": "list",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "table": 1.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "tp": 0,
+          "n_gold": 1,
+          "n_pred": 1
+        }
+      },
+      "efficiency": 0.0,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.55
+    },
+    {
+      "id": "pool_r_0154",
+      "task_type": "rag_only",
+      "answer_type": "string",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "rag"
+        ],
+        "needed": [
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "rag": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {}
+      },
+      "efficiency": 0.5189,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.9519
+    },
+    {
+      "id": "ws_lite_129_exg_count",
+      "task_type": "graph_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "chosen": [
+          "rag"
+        ],
+        "needed": [
+          "graph"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "reason": "unparseable",
+          "pred": "INSUFFICIENT_EVIDENCE"
+        }
+      },
+      "efficiency": 0.0,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.0
+    }
+  ]
+}
