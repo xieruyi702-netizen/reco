@@ -1,0 +1,791 @@
+{
+  "overall": {
+    "n": 20,
+    "route_f1": 0.7533,
+    "route_precision": 0.675,
+    "route_recall": 0.95,
+    "evidence": 0.1,
+    "answer": 0.2429,
+    "efficiency": 0.7154,
+    "safety": null,
+    "aggregate": 0.3749
+  },
+  "by_task_type": {
+    "cross_surface": {
+      "n": 5,
+      "route_f1": 0.68,
+      "route_precision": 0.6,
+      "route_recall": 0.8,
+      "evidence": 0.0,
+      "answer": 0.2,
+      "efficiency": 0.8389,
+      "safety": null,
+      "aggregate": 0.3239
+    },
+    "table_only": {
+      "n": 5,
+      "route_f1": 0.9,
+      "route_precision": 0.8667,
+      "route_recall": 1.0,
+      "evidence": 0.0,
+      "answer": 0.2,
+      "efficiency": 0.7934,
+      "safety": null,
+      "aggregate": 0.3743
+    },
+    "rag_only": {
+      "n": 5,
+      "route_f1": 0.9333,
+      "route_precision": 0.9,
+      "route_recall": 1.0,
+      "evidence": 0.4,
+      "answer": 0.4,
+      "efficiency": 0.5245,
+      "safety": null,
+      "aggregate": 0.5458
+    },
+    "graph_only": {
+      "n": 5,
+      "route_f1": 0.5,
+      "route_precision": 0.3333,
+      "route_recall": 1.0,
+      "evidence": 0.0,
+      "answer": 0.1714,
+      "efficiency": 0.7048,
+      "safety": null,
+      "aggregate": 0.2555
+    }
+  },
+  "per_task": [
+    {
+      "id": "pool_rg_0012",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.8,
+        "precision": 0.6667,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "graph",
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {}
+      },
+      "efficiency": 0.8041,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.6304
+    },
+    {
+      "id": "pool_t_0098",
+      "task_type": "table_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "gold": 2.0,
+          "pred": 8.0
+        }
+      },
+      "efficiency": 0.8732,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.3373
+    },
+    {
+      "id": "pool_r_0085",
+      "task_type": "rag_only",
+      "answer_type": "string",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "rag"
+        ],
+        "needed": [
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.5136,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.3014
+    },
+    {
+      "id": "ws_lite_87_q001",
+      "task_type": "graph_only",
+      "answer_type": "list",
+      "route": {
+        "f1": 0.5,
+        "precision": 0.3333,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "graph"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.8571428571428571,
+        "detail": {
+          "precision": 1.0,
+          "recall": 0.75,
+          "tp": 3,
+          "n_gold": 4,
+          "n_pred": 3
+        }
+      },
+      "efficiency": 0.664,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.4914
+    },
+    {
+      "id": "pool_rg_0156",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.8,
+        "precision": 0.6667,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "graph",
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.8284,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.2828
+    },
+    {
+      "id": "pool_t_0152",
+      "task_type": "table_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "reason": "unparseable",
+          "pred": "Error: The August worksheet table was not queried successfully."
+        }
+      },
+      "efficiency": 0.8662,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.3366
+    },
+    {
+      "id": "pool_r_0210",
+      "task_type": "rag_only",
+      "answer_type": "string",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "rag"
+        ],
+        "needed": [
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "rag": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {}
+      },
+      "efficiency": 0.2786,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.9279
+    },
+    {
+      "id": "ws_lite_373_exg_count",
+      "task_type": "graph_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 0.5,
+        "precision": 0.3333,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "graph"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "reason": "unparseable",
+          "pred": "No answer available."
+        }
+      },
+      "efficiency": 0.7201,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.197
+    },
+    {
+      "id": "pool_rg_0008",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.8,
+        "precision": 0.6667,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "graph",
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.8113,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.2811
+    },
+    {
+      "id": "pool_t_0297",
+      "task_type": "table_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "gold": 9.0,
+          "pred": 8.0
+        }
+      },
+      "efficiency": 0.8735,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.3374
+    },
+    {
+      "id": "pool_r_0146",
+      "task_type": "rag_only",
+      "answer_type": "string",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "rag"
+        ],
+        "needed": [
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.6787,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.3179
+    },
+    {
+      "id": "ws_lite_124_exg_count",
+      "task_type": "graph_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 0.5,
+        "precision": 0.3333,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "graph"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "reason": "unparseable",
+          "pred": "No source files are listed in the preparation checklist for Task 124."
+        }
+      },
+      "efficiency": 0.7364,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.1986
+    },
+    {
+      "id": "ws_lite_47_xgt_0043",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.5,
+        "precision": 0.5,
+        "recall": 0.5,
+        "chosen": [
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.8733,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.2123
+    },
+    {
+      "id": "ws_lite_288_aq001",
+      "task_type": "table_only",
+      "answer_type": "list",
+      "route": {
+        "f1": 0.5,
+        "precision": 0.3333,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "tp": 0,
+          "n_gold": 1,
+          "n_pred": 1
+        }
+      },
+      "efficiency": 0.7092,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.1959
+    },
+    {
+      "id": "ws_lite_92_aq003",
+      "task_type": "rag_only",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.6667,
+        "precision": 0.5,
+        "recall": 1.0,
+        "chosen": [
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "rag": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.6814,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.2348
+    },
+    {
+      "id": "ws_lite_115_q001",
+      "task_type": "graph_only",
+      "answer_type": "list",
+      "route": {
+        "f1": 0.5,
+        "precision": 0.3333,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "graph"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "tp": 0,
+          "n_gold": 17,
+          "n_pred": 1
+        }
+      },
+      "efficiency": 0.7462,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.1996
+    },
+    {
+      "id": "pool_gt_0030",
+      "task_type": "cross_surface",
+      "answer_type": "string",
+      "route": {
+        "f1": 0.5,
+        "precision": 0.5,
+        "recall": 0.5,
+        "chosen": [
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "graph",
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0,
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {}
+      },
+      "efficiency": 0.8775,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.2127
+    },
+    {
+      "id": "ws_lite_37_ext_0086",
+      "task_type": "table_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "table"
+        ],
+        "needed": [
+          "table"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "table": 0.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {
+          "gold": 47.0,
+          "pred": 47.0
+        }
+      },
+      "efficiency": 0.6451,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.6645
+    },
+    {
+      "id": "pool_r_0154",
+      "task_type": "rag_only",
+      "answer_type": "string",
+      "route": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "chosen": [
+          "rag"
+        ],
+        "needed": [
+          "rag"
+        ]
+      },
+      "evidence": {
+        "score": 1.0,
+        "per_surface": {
+          "rag": 1.0
+        }
+      },
+      "answer": {
+        "score": 1.0,
+        "detail": {}
+      },
+      "efficiency": 0.4702,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.947
+    },
+    {
+      "id": "ws_lite_129_exg_count",
+      "task_type": "graph_only",
+      "answer_type": "number",
+      "route": {
+        "f1": 0.5,
+        "precision": 0.3333,
+        "recall": 1.0,
+        "chosen": [
+          "graph",
+          "rag",
+          "table"
+        ],
+        "needed": [
+          "graph"
+        ]
+      },
+      "evidence": {
+        "score": 0.0,
+        "per_surface": {
+          "graph": 0.0
+        }
+      },
+      "answer": {
+        "score": 0.0,
+        "detail": {
+          "gold": 6.0,
+          "pred": 3.0
+        }
+      },
+      "efficiency": 0.6575,
+      "safety": {
+        "applicable": false,
+        "score": null,
+        "violations": []
+      },
+      "aggregate": 0.1908
+    }
+  ]
+}

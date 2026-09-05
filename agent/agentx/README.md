@@ -1,4 +1,4 @@
-# AgentX —— 阶段式 Agent 与原生 ReAct 的受控对比实验
+# AgentX —— 三架构受控对比：ReAct / 阶段式 / Plan-and-Execute
 
 基于北大 **WorkSurface-Bench**（arXiv:2607.25765，1151 任务：RAG/Table(DuckDB)/Graph/跨源混合）
 构建的评测驱动迭代项目。复用官方 `ProfileTools` 工具环境、`react_loop`、确定性评分
@@ -109,3 +109,31 @@ export WSB_API_BASE="https://api.deepseek.com" WSB_API_KEY="$DEEPSEEK_API_KEY"
 结论：**路由与证据获取能力上 flash ≈ pro（差异 <3 分），全部差距集中在答案合成与
 效率**——这为"外挂确定性校验/合成增强"（Verify-Act 方向）提供了量化依据：如果把
 answer 从 54 提到 67（pro 水平），flash 配置就能以零模型成本追平论文基线。
+
+
+## S7 = Plan-and-Execute（2026-09-05）：第三种架构入场
+
+ReAct 是"思考→行动→观察→再思考"的交错循环；S7 改为 **Plan-and-Execute**：
+Planner 一次性产出完整工具调用计划（≤6 步，具体到参数）→ 执行器【无 LLM】按序执行
+→ Synthesizer 一次汇总。全程仅 2 次 LLM 调用 + 1 次可选 repair 重规划。
+
+| 迭代 | aggregate | answer | evidence | avg tok | 说明 |
+|---|---|---|---|---|---|
+| PE-v1 盲计划 | 0.375 | 0.24 | 0.10 | 1117 | 规划器猜表名/节点名，证据命中极低 |
+| **PE-v2 + 环境快照** | **0.602** | 0.40 | **0.725** | 1173 | 注入真实表清单 + 图谱节点约定 |
+
+### 三架构同任务对比（DeepSeek-v4-flash，20 任务）
+
+| 架构 | aggregate | answer | evidence | avg tok | answer/token |
+|---|---|---|---|---|---|
+| S4 ReAct-all | 0.695 | 0.65 | 0.72 | 4211 | 1.5e-4 |
+| S7 阶段式 | 0.645 | 0.55 | 0.68 | 4093 | 1.3e-4 |
+| **S7 Plan-and-Execute** | 0.602 | 0.40 | **0.725** | **1173** | **3.4e-4** |
+
+结论：三种架构构成清晰的**成本-精度权衡谱**。PE 的 evidence 反超 S4（0.725 vs 0.72）
+——环境快照让计划直击正确证据面；answer 差距来自盲执行无中间自适应。适用建议：
+短时程任务（≤6 步可解）选 PE 省 73% token；长时程/强探索任务选 ReAct；
+阶段式介于两者但两头不占优（在本基准上）。
+
+PE 工程要点：环境快照是确定性的（table_list + 图谱节点约定，无 LLM）；repair 重规划
+仅在全空/报错时触发一次。

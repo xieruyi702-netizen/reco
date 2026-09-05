@@ -230,7 +230,7 @@ def main():
     ap.add_argument("--model", default="glm-4.5-flash")
     ap.add_argument("--sample", type=int, default=20)
     ap.add_argument("--seed", type=int, default=7)
-    ap.add_argument("--mode", choices=["both", "s4", "s7"], default="both")
+    ap.add_argument("--mode", choices=["both", "s4", "s7", "staged"], default="both")
     ap.add_argument("--outdir", default="runs")
     args = ap.parse_args()
 
@@ -258,8 +258,11 @@ def main():
                             trace = run_s4_react_all(task, backbone, tools)
                             trace["total_tokens"] = (backbone.cum_usage["input"]
                                                      + backbone.cum_usage["output"])
-                        else:
+                        elif setting == "S7-STAGED":
                             trace = run_s7_agentx(task, backbone, tools)
+                        else:  # S7 = Plan-and-Execute（规划一次 + 无 LLM 确定性执行）
+                            from plan_execute import run_s8_plan_execute
+                            trace = run_s8_plan_execute(task, backbone, tools)
                     finally:
                         tools.close()
                 except Exception as e:  # noqa: BLE001
@@ -279,7 +282,9 @@ def main():
     if args.mode in ("both", "s4"):
         paths.append(("S4", run_setting("S4", None, f"{args.outdir}/s4_{args.model}.jsonl")))
     if args.mode in ("both", "s7"):
-        paths.append(("S7-AgentX", run_setting("S7", None, f"{args.outdir}/s7_agentx_{args.model}.jsonl")))
+        paths.append(("S7-PlanExecute", run_setting("S7", None, f"{args.outdir}/s7_planexec_{args.model}.jsonl")))
+    if args.mode == "staged":
+        paths.append(("S7-STAGED", run_setting("S7-STAGED", None, f"{args.outdir}/s7_staged_{args.model}.jsonl")))
 
     all_tasks = {t["id"]: t for t in tasks}
     print("\n==== 对比报告 ====")
