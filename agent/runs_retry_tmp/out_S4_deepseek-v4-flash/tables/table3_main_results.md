@@ -1,3 +1,0 @@
-| Setting | Model | Route-P | Route-R | Route-F1 | Evid. | Answer | Eff. | Agg. |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| S4 | deepseek-v4-flash | 60.3 | 98.9 | 72.9 | 63.2 | 47.9 | 8.4 | 54.8 |

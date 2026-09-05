@@ -1,6 +1,0 @@
-venv/
-venv312/
-.env
-__pycache__/
-wsb_data/
-runs/
