@@ -1,14 +1,6 @@
-venv/
 venv312/
 .env
 __pycache__/
-wsb_data/
-runs/
-runs_smoke*/
-runs_pe*/
-runs_v*/
-runs_hybrid/
-runs_fair4/
-runs_dev_plain/
-runs_test_final/
-dump.rdb
+data_locomo/
+runs_mem/
+data_locomo/
